@@ -450,6 +450,130 @@
     a.doc-card-link:hover .doc-card.yellow { border-color: rgba(227,179,65,0.55); }
     .doc-card-arrow { float: right; font-size: 11px; color: #484f58; margin-top: 1px; }
     /* docs-open country-list position — handled in JS via updateCountryListPos() */
+
+    /* ── THEME TOGGLE BUTTON ── */
+    #theme-toggle {
+      background: rgba(139,148,158,0.1);
+      border: 1px solid rgba(139,148,158,0.25);
+      color: #8b949e;
+      font-size: 11px; font-weight: 600;
+      padding: 5px 12px; border-radius: 6px;
+      cursor: pointer; white-space: nowrap;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, color 0.2s;
+    }
+    #theme-toggle:hover { background: rgba(139,148,158,0.2); color: #c9d1d9; }
+
+    /* ── LIGHT MODE OVERRIDES ── */
+    body.light-mode { background: #eef2f7; color: #24292f; }
+
+    body.light-mode #header {
+      background: rgba(238,242,247,0.96);
+      border-bottom-color: #d0d7de;
+    }
+    body.light-mode #header-title h1 { color: #24292f; }
+    body.light-mode #header-title p  { color: #57606a; }
+    body.light-mode .stat-label      { color: #57606a; }
+    body.light-mode #source-line     { color: #8c949e; }
+    body.light-mode .region-link     { color: #b0bac4; }
+    body.light-mode .region-link:hover { color: #24292f; }
+    body.light-mode .region-link.active { color: #0969da; }
+    body.light-mode .region-sep      { color: #d0d7de; }
+
+    body.light-mode #theme-toggle {
+      background: rgba(87,96,106,0.08);
+      border-color: rgba(87,96,106,0.25);
+      color: #57606a;
+    }
+    body.light-mode #theme-toggle:hover { background: rgba(87,96,106,0.15); color: #24292f; }
+
+    body.light-mode #filter-toggle {
+      background: rgba(9,105,218,0.07);
+      border-color: rgba(9,105,218,0.25);
+      color: #0969da;
+    }
+    body.light-mode #filter-toggle:hover  { background: rgba(9,105,218,0.13); }
+    body.light-mode #filter-toggle.active { background: rgba(9,105,218,0.17); border-color: #0969da; }
+
+    body.light-mode #docs-toggle {
+      background: rgba(26,127,55,0.07);
+      border-color: rgba(26,127,55,0.25);
+      color: #1a7f37;
+    }
+    body.light-mode #docs-toggle:hover  { background: rgba(26,127,55,0.13); }
+    body.light-mode #docs-toggle.active { background: rgba(26,127,55,0.17); border-color: #1a7f37; }
+
+    body.light-mode #sidebar {
+      background: rgba(248,250,252,0.98);
+      border-left-color: #d0d7de;
+    }
+    body.light-mode #sidebar-close      { color: #57606a; }
+    body.light-mode #sidebar-close:hover { color: #24292f; }
+    body.light-mode #sidebar-country-name { color: #24292f; }
+    body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
+    body.light-mode .info-label         { color: #57606a; }
+    body.light-mode .info-value         { color: #424a53; }
+    body.light-mode .harms-box          { background: rgba(248,81,73,0.04); color: #424a53; }
+    body.light-mode .divider            { border-top-color: #d0d7de; }
+    body.light-mode .intl-response      { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.18); }
+    body.light-mode .intl-response-meta { color: #0969da; }
+    body.light-mode .intl-response-text { color: #424a53; }
+    body.light-mode #sidebar::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+    body.light-mode #filter-panel {
+      background: rgba(238,242,247,0.98);
+      border-bottom-color: #d0d7de;
+    }
+    body.light-mode #docs-panel {
+      background: rgba(238,242,247,0.98);
+      border-bottom-color: #d0d7de;
+    }
+    body.light-mode .filter-label { color: #57606a; }
+    body.light-mode .pill {
+      background: rgba(208,215,222,0.5);
+      border-color: #d0d7de;
+      color: #57606a;
+    }
+    body.light-mode .pill:hover   { border-color: #0969da; color: #24292f; }
+    body.light-mode .pill.active  { background: rgba(9,105,218,0.1); border-color: #0969da; color: #0969da; }
+    body.light-mode .pill.active.red    { background: rgba(248,81,73,0.1);  border-color: #f85149; color: #f85149; }
+    body.light-mode .pill.active.orange { background: rgba(210,140,30,0.1); border-color: #bf8700; color: #bf8700; }
+    body.light-mode .pill.active.green  { background: rgba(26,127,55,0.1);  border-color: #1a7f37; color: #1a7f37; }
+    body.light-mode #filter-clear { border-color: #d0d7de; color: #8c949e; }
+    body.light-mode #filter-clear:hover { border-color: #f85149; color: #f85149; }
+
+    body.light-mode #country-list {
+      background: rgba(238,242,247,0.95);
+      border-color: #d0d7de;
+    }
+    body.light-mode #country-list-header { color: #57606a; border-bottom-color: #d0d7de; }
+    body.light-mode #country-list-header:hover { color: #24292f; }
+    body.light-mode #country-list-subhead { color: #8c949e; border-bottom-color: #d0d7de; }
+    body.light-mode .cl-section.confirmed { color: #cf222e; }
+    body.light-mode .cl-section.pending   { color: #bf8700; border-top-color: #d0d7de; }
+    body.light-mode .cl-item             { color: #424a53; }
+    body.light-mode .cl-item:hover       { background: rgba(9,105,218,0.07); color: #24292f; }
+    body.light-mode #country-list-body::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+    body.light-mode .doc-card          { background: rgba(208,215,222,0.35); border-color: #d0d7de; }
+    body.light-mode .doc-card-title    { color: #24292f; }
+    body.light-mode .doc-card-source   { color: #57606a; }
+    body.light-mode .doc-card-arrow    { color: #8c949e; }
+    body.light-mode .docs-section-divider { border-top-color: #d0d7de; }
+    body.light-mode #docs-panel-title  { color: #1a7f37; }
+    body.light-mode .docs-section-label.advocates { color: #0969da; }
+    body.light-mode .docs-section-label.trackers  { color: #bf8700; }
+    body.light-mode #docs-igo-note     { color: #8c949e; border-top-color: #d0d7de; }
+    body.light-mode #docs-igo-note strong { color: #57606a; }
+    body.light-mode .doc-card.blue     { border-color: rgba(9,105,218,0.25); }
+    body.light-mode .doc-card.yellow   { border-color: rgba(191,135,0,0.25); }
+    body.light-mode .doc-card-date.blue   { color: #0969da; }
+    body.light-mode .doc-card-date.yellow { color: #bf8700; }
+    body.light-mode a.doc-card-link:hover .doc-card       { background: rgba(188,200,215,0.55); }
+    body.light-mode a.doc-card-link:hover .doc-card.blue  { border-color: rgba(9,105,218,0.5); }
+    body.light-mode a.doc-card-link:hover .doc-card.yellow{ border-color: rgba(191,135,0,0.5); }
+
+    body.light-mode #hint { color: #8c949e; }
   </style>
 </head>
 <body>
@@ -477,6 +601,7 @@
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
   <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
+  <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
 </div>
 
@@ -1080,6 +1205,10 @@ function hasFunding(c) {
   return !c.funding.startsWith('No direct') && !c.funding.startsWith('No financial') && c.funding !== 'Not applicable';
 }
 
+// ── THEME STATE ──
+let darkMode = localStorage.getItem('tcd-theme') !== 'light';
+if (!darkMode) document.body.classList.add('light-mode');
+
 // ── FILTER STATE ──
 const filters = { region: '', status: '', type: '', funding: '' };
 
@@ -1155,15 +1284,15 @@ let selectedName = null;
 
 // Named accessors — re-applied reactively when selection or filters change
 function polyCapColor(d) {
-  if (!d._tcd) return '#162438';
-  if (!matchesFilters(d._tcd)) return '#182030'; // dimmed when filtered out
+  if (!d._tcd) return darkMode ? '#162438' : '#c8d8e8';
+  if (!matchesFilters(d._tcd)) return darkMode ? '#182030' : '#d4e0ea';
   return d._tcd.transfersOccurred ? '#f85149' : '#e3b341';
 }
 
 function polyStroke(d) {
-  if (d._tcd && d._tcd.name === selectedName) return 'white';
-  if (!d._tcd) return 'rgba(50, 72, 100, 0.5)';
-  if (!matchesFilters(d._tcd)) return 'rgba(40, 55, 75, 0.4)';
+  if (d._tcd && d._tcd.name === selectedName) return darkMode ? 'white' : '#24292f';
+  if (!d._tcd) return darkMode ? 'rgba(50,72,100,0.5)' : 'rgba(160,185,205,0.55)';
+  if (!matchesFilters(d._tcd)) return darkMode ? 'rgba(40,55,75,0.4)' : 'rgba(160,185,205,0.35)';
   return d._tcd.transfersOccurred ? '#ff6b60' : '#f0c840';
 }
 
@@ -1172,6 +1301,22 @@ function polyAlt(d) {
   if (!d._tcd) return 0.003;
   if (!matchesFilters(d._tcd)) return 0.003;
   return d._tcd.transfersOccurred ? 0.010 : 0.006;
+}
+
+function polygonLabelFn(d) {
+  if (!d._tcd) return '';
+  const c = d._tcd;
+  const color = c.transfersOccurred ? '#f85149' : '#e3b341';
+  const status = c.transfersOccurred ? '● Transfers confirmed' : '○ Agreement only — no transfers yet';
+  const bg     = darkMode ? 'rgba(13,17,23,0.93)'    : 'rgba(238,242,247,0.97)';
+  const border = darkMode ? '#21262d'                 : '#d0d7de';
+  const title  = darkMode ? '#f0f6fc'                 : '#24292f';
+  const hint   = darkMode ? '#484f58'                 : '#8c949e';
+  return `<div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none;">
+    <div style="font-size:15px;font-weight:700;color:${title};">${c.flag} ${c.name}</div>
+    <div style="font-size:12px;color:${color};margin-top:4px;">${status}</div>
+    <div style="font-size:11px;color:${hint};margin-top:3px;">Click to see details</div>
+  </div>`;
 }
 
 function refreshPolygons() {
@@ -1215,8 +1360,11 @@ async function initGlobe() {
     const oceanCanvas = document.createElement('canvas');
     oceanCanvas.width = 64; oceanCanvas.height = 32;
     const octx = oceanCanvas.getContext('2d');
-    octx.fillStyle = '#0a1828';
+    octx.fillStyle = darkMode ? '#0a1828' : '#9abfd4';
     octx.fillRect(0, 0, 64, 32);
+    // Store refs so updateGlobeTheme() can repaint without reinitialising
+    window._oceanCanvas = oceanCanvas;
+    window._oceanCtx = octx;
 
     globe = Globe()
       .width(globeEl.clientWidth)
@@ -1231,18 +1379,7 @@ async function initGlobe() {
       .polygonSideColor(() => 'transparent')
       .polygonStrokeColor(polyStroke)
       .polygonAltitude(polyAlt)
-      .polygonLabel(d => {
-        if (!d._tcd) return '';
-        const c = d._tcd;
-        const color = c.transfersOccurred ? '#f85149' : '#e3b341';
-        const status = c.transfersOccurred ? '● Transfers confirmed' : '○ Agreement only — no transfers yet';
-        return `
-          <div style="background:rgba(13,17,23,0.93);border:1px solid #21262d;border-radius:7px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none;">
-            <div style="font-size:15px;font-weight:700;color:#f0f6fc;">${c.flag} ${c.name}</div>
-            <div style="font-size:12px;color:${color};margin-top:4px;">${status}</div>
-            <div style="font-size:11px;color:#484f58;margin-top:3px;">Click to see details</div>
-          </div>`;
-      })
+      .polygonLabel(polygonLabelFn)
       .onPolygonClick(d => { if (d._tcd) openSidebar(d._tcd); })
       .onPolygonHover(d => {
         globeEl.style.cursor = (d && d._tcd) ? 'pointer' : 'default';
@@ -1529,6 +1666,30 @@ function toggleCountryList() {
 }
 
 buildCountryList();
+
+// ──────────────────────────────────────────────
+// THEME TOGGLE
+// ──────────────────────────────────────────────
+function updateGlobeTheme() {
+  if (window._oceanCanvas && window._oceanCtx) {
+    window._oceanCtx.fillStyle = darkMode ? '#0a1828' : '#9abfd4';
+    window._oceanCtx.fillRect(0, 0, 64, 32);
+    if (globe) globe.globeImageUrl(window._oceanCanvas.toDataURL());
+  }
+  if (globe) globe.polygonLabel(polygonLabelFn);
+  refreshPolygons();
+}
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.body.classList.toggle('light-mode', !darkMode);
+  document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
+  localStorage.setItem('tcd-theme', darkMode ? 'dark' : 'light');
+  updateGlobeTheme();
+}
+
+// Sync button label with saved preference on load
+document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
 </script>
 </body>
 </html>
