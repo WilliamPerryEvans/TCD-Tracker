@@ -443,6 +443,12 @@
     .doc-card.yellow { border-color: rgba(227,179,65,0.25); }
     .doc-card-date.blue   { color: #58a6ff; }
     .doc-card-date.yellow { color: #e3b341; }
+    a.doc-card-link { text-decoration: none; color: inherit; display: block; }
+    a.doc-card-link .doc-card { transition: border-color 0.15s, background 0.15s; cursor: pointer; }
+    a.doc-card-link:hover .doc-card { background: rgba(44,50,60,0.8); }
+    a.doc-card-link:hover .doc-card.blue   { border-color: rgba(88,166,255,0.55); }
+    a.doc-card-link:hover .doc-card.yellow { border-color: rgba(227,179,65,0.55); }
+    .doc-card-arrow { float: right; font-size: 11px; color: #484f58; margin-top: 1px; }
     /* docs-open country-list position — handled in JS via updateCountryListPos() */
   </style>
 </head>
@@ -513,61 +519,81 @@
   <hr class="docs-section-divider">
   <div class="docs-section-label advocates">For Advocates &amp; Legal Practitioners</div>
   <div class="docs-grid">
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Ongoing</div>
-      <div class="doc-card-title">Post-Deportation Intake &amp; Referral Form</div>
-      <div class="doc-card-source">Justice in Motion (JiM) — post-deportation monitoring, rights violation detection, and connection to local resources in MX, GT, ES, HN, NI</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Jan 29, 2025</div>
-      <div class="doc-card-title">Practice Advisory: Protecting Noncitizens with Withholding of Removal or CAT Against Third Country Deportation</div>
-      <div class="doc-card-source">National Immigration Lawyers Association (NILA)</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Jun 27, 2025</div>
-      <div class="doc-card-title">Practice Alert: Third Country Deportations and D.V.D. v. DHS</div>
-      <div class="doc-card-source">National Immigration Lawyers Association (NILA)</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Jan 20, 2026</div>
-      <div class="doc-card-title">Responding to Motions to Pretermit Asylum Applications</div>
-      <div class="doc-card-source">National Immigration Law Center (NILC)</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Dec 2, 2025</div>
-      <div class="doc-card-title">Asylum Cooperative Agreements: What You Must Know</div>
-      <div class="doc-card-source">Immigrant Legal Resource Center (ILRC)</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">Reference</div>
-      <div class="doc-card-title">Fifteen Steps for Addressing Orders of Removal Issued by an Immigration Judge</div>
-      <div class="doc-card-source">National Immigration Project</div>
-    </div>
-    <div class="doc-card blue">
-      <div class="doc-card-date blue">[redacted]</div>
-      <div class="doc-card-title">Behind the Brief: The Danger of Institutionalizing Third Country Returns</div>
-      <div class="doc-card-source">[redacted] ([redacted])</div>
-    </div>
+    <a class="doc-card-link" href="https://www.justiceinmotion.org/legal-action" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Ongoing <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Post-Deportation Intake &amp; Referral Form</div>
+        <div class="doc-card-source">Justice in Motion (JiM) — post-deportation monitoring, rights violation detection, and connection to local resources in MX, GT, ES, HN, NI</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrationlitigation.org/new-advisoryprotecting-noncitizens-granted-withholding-of-removal-or-cat-protection-against-deportation-to-third-countries-where-they-fear-persecution-torture/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jan 29, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Practice Advisory: Protecting Noncitizens with Withholding of Removal or CAT Against Third Country Deportation</div>
+        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrationlitigation.org/wp-content/uploads/2025/06/25.05.27-DVD-Practice-Alert.pdf" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jun 27, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Practice Alert: Third Country Deportations and D.V.D. v. DHS</div>
+        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrantjustice.org/for-attorneys/resources/training-responding-to-motions-to-pretermit-asylum-applications/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jan 20, 2026 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Responding to Motions to Pretermit Asylum Applications</div>
+        <div class="doc-card-source">National Immigrant Justice Center (NIJC)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://www.ilrc.org/community-resources/asylum-cooperative-agreements-what-you-must-know" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Dec 2, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Asylum Cooperative Agreements: What You Must Know</div>
+        <div class="doc-card-source">Immigrant Legal Resource Center (ILRC)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://nipnlg.org/work/resources/fifteen-steps-addressing-orders-removal-issued-immigration-judge" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Reference <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Fifteen Steps for Addressing Orders of Removal Issued by an Immigration Judge</div>
+        <div class="doc-card-source">National Immigration Project (NIPNLG)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://refugees.org/behind-the-brief-the-danger-of-institutionalizing-third-country-returns/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Nov 19, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Behind the Brief: The Danger of Institutionalizing Third Country Returns</div>
+        <div class="doc-card-source">[redacted] ([redacted])</div>
+      </div>
+    </a>
   </div>
 
   <hr class="docs-section-divider">
   <div class="docs-section-label trackers">Other Trackers &amp; Explainers</div>
   <div class="docs-grid">
-    <div class="doc-card yellow">
-      <div class="doc-card-date yellow">Updated Apr 3, 2026</div>
-      <div class="doc-card-title">Banished by Bargain: Third Country Deportation Watch</div>
-      <div class="doc-card-source">Human Rights First &amp; Refugees International — primary source data for this tracker</div>
-    </div>
-    <div class="doc-card yellow">
-      <div class="doc-card-date yellow">Live</div>
-      <div class="doc-card-title">ICE Flight Monitor</div>
-      <div class="doc-card-source">Human Rights First — tracks deportation flights in real time</div>
-    </div>
-    <div class="doc-card yellow">
-      <div class="doc-card-date yellow">Explainer</div>
-      <div class="doc-card-title">What Are Third Country Deportations, and Why Is Trump Using Them?</div>
-      <div class="doc-card-source">Council on Foreign Relations (CFR)</div>
-    </div>
+    <a class="doc-card-link" href="https://humanrightsfirst.org/events/banished-by-bargain-third-country-deportation-watch/" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Updated Apr 3, 2026 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Banished by Bargain: Third Country Deportation Watch</div>
+        <div class="doc-card-source">Human Rights First &amp; Refugees International — primary source data for this tracker</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://humanrightsfirst.org/ice-flight-monitor/" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Live <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">ICE Flight Monitor</div>
+        <div class="doc-card-source">Human Rights First — tracks deportation flights in real time</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://www.cfr.org/articles/what-are-third-country-deportations-and-why-trump-using-them" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Explainer <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">What Are Third Country Deportations, and Why Is Trump Using Them?</div>
+        <div class="doc-card-source">Council on Foreign Relations (CFR)</div>
+      </div>
+    </a>
   </div>
 </div>
 
