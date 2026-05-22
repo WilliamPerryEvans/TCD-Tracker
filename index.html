@@ -66,6 +66,9 @@
 
     #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
 
+    #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; }
+    body.light-mode #[redacted]-logo { filter: invert(1); }
+
     /* ── GLOBE ── */
     #globe-container { position: fixed; inset: 0; top: var(--header-h); background: #060c14; }
     body.light-mode #globe-container { background: #ddeaf3; }
@@ -603,6 +606,7 @@
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
   <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
+  <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
 </div>
 
