@@ -33,12 +33,12 @@
     }
 
     #header-title { flex: 1; min-width: 200px; }
-    #header-title h1 { font-size: 15px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em; }
-    #header-title p { font-size: 11px; color: #8b949e; margin-top: 2px; }
+    #header-title h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em; }
+    #header-title p { font-size: 12px; color: #8b949e; margin-top: 2px; }
 
     #stats-bar { display: flex; gap: 20px; flex-wrap: wrap; }
     .stat { text-align: center; }
-    .stat-value { font-size: 20px; font-weight: 700; line-height: 1; }
+    .stat-value { font-size: 22px; font-weight: 700; line-height: 1; }
     .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
     .stat-value.red { color: #f85149; }
     .stat-value.orange { color: #e3b341; }
@@ -67,7 +67,8 @@
     #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
 
     /* ── GLOBE ── */
-    #globe-container { position: fixed; inset: 0; top: var(--header-h); }
+    #globe-container { position: fixed; inset: 0; top: var(--header-h); background: #060c14; }
+    body.light-mode #globe-container { background: #ddeaf3; }
 
     /* ── LOADING ── */
     #loading {
@@ -145,7 +146,7 @@
 
     .info-block { margin-bottom: 14px; }
     .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e; margin-bottom: 4px; }
-    .info-value { font-size: 13px; color: #c9d1d9; line-height: 1.5; }
+    .info-value { font-size: 14px; color: #c9d1d9; line-height: 1.5; }
     .info-value.highlight { color: #f85149; font-weight: 500; }
     .info-value.funding { color: #3fb950; font-weight: 600; }
 
@@ -154,7 +155,7 @@
       border: 1px solid rgba(248,81,73,0.2);
       border-radius: 6px;
       padding: 10px 12px;
-      font-size: 12px; color: #c9d1d9; line-height: 1.6;
+      font-size: 13px; color: #c9d1d9; line-height: 1.6;
     }
 
     .legal-tag {
@@ -162,7 +163,7 @@
       background: rgba(88,166,255,0.12);
       border: 1px solid rgba(88,166,255,0.25);
       color: #58a6ff;
-      font-size: 11px; padding: 2px 8px;
+      font-size: 12px; padding: 2px 8px;
       border-radius: 4px; margin: 2px 2px 2px 0;
     }
 
@@ -175,7 +176,7 @@
     /* ── HINT ── */
     #hint {
       position: fixed; bottom: 24px; right: 24px;
-      z-index: 100; font-size: 11px; color: #484f58; text-align: right;
+      z-index: 100; font-size: 12px; color: #484f58; text-align: right;
     }
 
     /* ── FILTER TOGGLE BUTTON (in header) ── */
@@ -183,7 +184,7 @@
       background: rgba(88,166,255,0.1);
       border: 1px solid rgba(88,166,255,0.25);
       color: #58a6ff;
-      font-size: 11px; font-weight: 600;
+      font-size: 12px; font-weight: 600;
       padding: 5px 12px; border-radius: 6px;
       cursor: pointer; white-space: nowrap;
       letter-spacing: 0.04em;
@@ -230,7 +231,7 @@
       background: rgba(33, 38, 45, 0.8);
       border: 1px solid #30363d;
       color: #8b949e;
-      font-size: 11px;
+      font-size: 12px;
       padding: 3px 10px;
       border-radius: 20px;
       cursor: pointer;
@@ -248,7 +249,7 @@
       background: none;
       border: 1px solid #30363d;
       color: #484f58;
-      font-size: 11px;
+      font-size: 12px;
       padding: 3px 10px;
       border-radius: 6px;
       cursor: pointer;
@@ -286,7 +287,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 9px 12px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -324,7 +325,7 @@
       align-items: center;
       gap: 7px;
       padding: 5px 12px;
-      font-size: 12px;
+      font-size: 13px;
       color: #c9d1d9;
       cursor: pointer;
       border-radius: 4px;
@@ -353,14 +354,14 @@
     }
     .intl-response:last-child { margin-bottom: 0; }
     .intl-response-meta {
-      font-size: 10px;
+      font-size: 11px;
       color: #58a6ff;
       font-weight: 600;
       margin-bottom: 3px;
       letter-spacing: 0.02em;
     }
     .intl-response-text {
-      font-size: 12px;
+      font-size: 13px;
       color: #c9d1d9;
       line-height: 1.55;
     }
@@ -370,7 +371,7 @@
       background: rgba(63,185,80,0.1);
       border: 1px solid rgba(63,185,80,0.25);
       color: #3fb950;
-      font-size: 11px; font-weight: 600;
+      font-size: 12px; font-weight: 600;
       padding: 5px 12px; border-radius: 6px;
       cursor: pointer; white-space: nowrap;
       letter-spacing: 0.04em;
@@ -410,20 +411,20 @@
       padding: 9px 12px;
     }
     .doc-card-date {
-      font-size: 10px; color: #3fb950;
+      font-size: 11px; color: #3fb950;
       font-weight: 700; margin-bottom: 3px;
     }
     .doc-card-title {
-      font-size: 12px; color: #f0f6fc;
+      font-size: 13px; color: #f0f6fc;
       font-weight: 600; line-height: 1.4;
       margin-bottom: 2px;
     }
     .doc-card-source {
-      font-size: 10px; color: #8b949e;
+      font-size: 11px; color: #8b949e;
     }
     #docs-igo-note {
       margin-top: 10px;
-      font-size: 11px; color: #484f58;
+      font-size: 12px; color: #484f58;
       border-top: 1px solid #21262d;
       padding-top: 8px;
       line-height: 1.5;
@@ -456,7 +457,7 @@
       background: rgba(139,148,158,0.1);
       border: 1px solid rgba(139,148,158,0.25);
       color: #8b949e;
-      font-size: 11px; font-weight: 600;
+      font-size: 12px; font-weight: 600;
       padding: 5px 12px; border-radius: 6px;
       cursor: pointer; white-space: nowrap;
       letter-spacing: 0.04em;
@@ -1371,6 +1372,7 @@ async function initGlobe() {
       .height(globeEl.clientHeight)
       .globeImageUrl(oceanCanvas.toDataURL())
       .backgroundImageUrl('')
+      .backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)')
 
       // ── COUNTRY POLYGONS ──
       .polygonsData(allFeatures)
@@ -1676,7 +1678,10 @@ function updateGlobeTheme() {
     window._oceanCtx.fillRect(0, 0, 64, 32);
     if (globe) globe.globeImageUrl(window._oceanCanvas.toDataURL());
   }
-  if (globe) globe.polygonLabel(polygonLabelFn);
+  if (globe) {
+    globe.backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)');
+    globe.polygonLabel(polygonLabelFn);
+  }
   refreshPolygons();
 }
 
