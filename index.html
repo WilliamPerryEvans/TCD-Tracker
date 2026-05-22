@@ -342,6 +342,94 @@
       color: #484f58;
       border-bottom: 1px solid #21262d;
     }
+
+    /* ── INTERNATIONAL RESPONSES (sidebar) ── */
+    .intl-response {
+      background: rgba(88,166,255,0.06);
+      border: 1px solid rgba(88,166,255,0.18);
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+    }
+    .intl-response:last-child { margin-bottom: 0; }
+    .intl-response-meta {
+      font-size: 10px;
+      color: #58a6ff;
+      font-weight: 600;
+      margin-bottom: 3px;
+      letter-spacing: 0.02em;
+    }
+    .intl-response-text {
+      font-size: 12px;
+      color: #c9d1d9;
+      line-height: 1.55;
+    }
+
+    /* ── DOCS TOGGLE BUTTON (in header) ── */
+    #docs-toggle {
+      background: rgba(63,185,80,0.1);
+      border: 1px solid rgba(63,185,80,0.25);
+      color: #3fb950;
+      font-size: 11px; font-weight: 600;
+      padding: 5px 12px; border-radius: 6px;
+      cursor: pointer; white-space: nowrap;
+      letter-spacing: 0.04em;
+      transition: background 0.15s;
+    }
+    #docs-toggle:hover { background: rgba(63,185,80,0.18); }
+    #docs-toggle.active { background: rgba(63,185,80,0.22); border-color: #3fb950; }
+
+    /* ── DOCUMENTS PANEL ── */
+    #docs-panel {
+      position: fixed;
+      top: 58px; left: 0; right: 0;
+      z-index: 94;
+      background: rgba(10, 15, 24, 0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #21262d;
+      padding: 12px 20px 16px;
+      transform: translateY(-110%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #docs-panel.open { transform: translateY(0); }
+
+    #docs-panel-title {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #3fb950; margin-bottom: 10px;
+    }
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+    }
+    .doc-card {
+      background: rgba(33,38,45,0.6);
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 9px 12px;
+    }
+    .doc-card-date {
+      font-size: 10px; color: #3fb950;
+      font-weight: 700; margin-bottom: 3px;
+    }
+    .doc-card-title {
+      font-size: 12px; color: #f0f6fc;
+      font-weight: 600; line-height: 1.4;
+      margin-bottom: 2px;
+    }
+    .doc-card-source {
+      font-size: 10px; color: #8b949e;
+    }
+    #docs-igo-note {
+      margin-top: 10px;
+      font-size: 11px; color: #484f58;
+      border-top: 1px solid #21262d;
+      padding-top: 8px;
+      line-height: 1.5;
+    }
+    body.docs-open #country-list { top: 230px; }
+    body.docs-open #country-list-body { max-height: calc(100vh - 310px); }
   </style>
 </head>
 <body>
@@ -368,7 +456,45 @@
     <div class="stat"><div class="stat-value green" id="stat-funding">$54M+</div><div class="stat-label">U.S. Funding</div></div>
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
+  <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Documents</button>
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
+</div>
+
+<!-- DOCUMENTS PANEL -->
+<div id="docs-panel">
+  <div id="docs-panel-title">Key Government Documents</div>
+  <div class="docs-grid">
+    <div class="doc-card">
+      <div class="doc-card-date">Feb 18, 2025</div>
+      <div class="doc-card-title">DHS Policy Directive on Third Country Deportations</div>
+      <div class="doc-card-source">Dept. of Homeland Security</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Mar 30, 2025</div>
+      <div class="doc-card-title">DHS Memo: Guidance Regarding Third Country Removals</div>
+      <div class="doc-card-source">Dept. of Homeland Security</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Jul 10, 2025</div>
+      <div class="doc-card-title">ICE Memo: Third Country Removals Following Supreme Court Order in DHS v. D.V.D.</div>
+      <div class="doc-card-source">Immigration and Customs Enforcement</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Sep 24, 2025</div>
+      <div class="doc-card-title">Congressional Letter Seeking Information on Third Country Deportations</div>
+      <div class="doc-card-source">Sen. Elizabeth Warren</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Nov 10, 2025</div>
+      <div class="doc-card-title">Letter to DOS Secretary Rubio re: $7.5M Transfer to Equatorial Guinea</div>
+      <div class="doc-card-source">Ranking Member Sen. Jeanne Shaheen</div>
+    </div>
+  </div>
+  <div id="docs-igo-note">
+    <strong style="color:#8b949e;">International responses:</strong>
+    Jul 8, 2025 &mdash; UN Special Rapporteurs alarmed by Supreme Court order clearing way for deportations, stressing assessments must be individual and country-specific. &nbsp;&middot;&nbsp;
+    Oct 6, 2025 &mdash; UN High Commissioner for Refugees stated concern about the legality of U.S. deportation practices, urging countries to consult UNHCR before entering agreements.
+  </div>
 </div>
 
 <!-- FILTER PANEL -->
@@ -561,6 +687,9 @@ const COUNTRIES = [
     funding: "$4.76 million", fundingUSD: 4.76,
     usLegal: "DVD v. DHS, JGG v. Trump (at least 16 lawsuits including Alien Enemies Act challenges)",
     intlLegal: "Quintanilla-Garcia, IACHR Precautionary Measure; Martinez-Ruano et al., IACHR Precautionary Measure",
+    intlResponses: [
+      { date: "May 13, 2025", body: "UN Human Rights High Commissioner", statement: "Voiced serious concern over deportations of Venezuelans and Salvadorans to El Salvador’s CECOT prison, stating the situation “raises serious concerns regarding a wide array of rights that are fundamental to both U.S. and international law.”" }
+    ],
     harms: "People were imprisoned in CECOT, El Salvador's notorious high-security prison. While incarcerated, they were subjected to indefinite and incommunicado detention amounting to enforced disappearances, torture, sexual assault, and severe beatings. After months, Venezuelan individuals were expelled onward to Venezuela — chain refoulement. Dozens of Salvadorans also transferred remain detained incommunicado, their fates unknown."
   },
   {
@@ -572,6 +701,9 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "ICE flight, Military flight", detained: "Detained",
     funding: "$5.1 million", fundingUSD: 5.1,
     usLegal: "DVD v. DHS", intlLegal: "High Court Case No. 1623/25; GSLC et al. v. Kingdom of Eswatini",
+    intlResponses: [
+      { date: "Jul 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Expressed concern about U.S. deportation agreements with Eswatini, calling the practice a 'delegation of detention' and raising violations of the African Charter on Human and Peoples' Rights and the African Guiding Principles on the Human Rights of All Migrants, Refugees and Asylum Seekers." }
+    ],
     harms: "Over 19 people were incarcerated across two flights at Matsapha Correctional Centre — a maximum-security prison — without charges, due process, or access to counsel. Roberto Mosquera del Peral (Cuba), from the July 2025 flight, went on a 30-day hunger strike in October to protest conditions; the Eswatini government falsely described him as 'fasting and praying.' Orville Etoria (Jamaica) was eventually repatriated in September with IOM support. A U.S. attorney representing five of the men said: 'I cannot call them. I cannot email them. I cannot communicate through local counsel because the Eswatini government blocks all attorney access.' An Eswatini lawyer was denied access to clients for weeks even after filing official court representation papers. U.S. State Department reports document 'numerous credible reports' of torture and cruel treatment in Eswatini's detention facilities. Four men sued the Eswatini government for due process violations, but proceedings stalled when a court judge failed to appear without explanation."
   },
   {
@@ -715,6 +847,9 @@ const COUNTRIES = [
     cap: "Up to 250 third country nationals", mode: "ICE flight, Military flight", detained: "No known detention",
     funding: "$7.5 million", fundingUSD: 7.5,
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    intlResponses: [
+      { date: "Aug 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Urged Rwanda to ensure transparency of the agreement and guarantee human rights protections. Expressed concern that the agreement may violate the African Charter on Human and Peoples' Rights and that migrants are being sent to a 'disposal zone' for arbitrary expulsions." }
+    ],
     harms: "Seven individuals of unknown nationalities arrived in mid-August 2025. The Rwandan government stated that three would return to their home countries and four expressed a wish to remain in Rwanda, where they were promised accommodation, workforce training, and healthcare. IOM and Rwandan social services have visited the individuals. Significant information gaps remain about their well-being and whether protection claims have been assessed. Context: Rwanda's reference as an 'established' migration partner echoes the UK-Rwanda Asylum Partnership — scrapped in 2024 after the UK Supreme Court declared it unlawful due to the risk of refoulement, before any asylum seekers were ever sent."
   },
   {
@@ -726,6 +861,9 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Military flight", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "DVD v. DHS", intlLegal: "No legal challenges reported",
+    intlResponses: [
+      { date: "Jul 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Expressed concern about U.S. deportation agreements with South Sudan, calling the practice a 'delegation of detention' and raising violations of the African Charter on Human and Peoples' Rights and the African Guiding Principles on the Human Rights of All Migrants, Refugees and Asylum Seekers." }
+    ],
     harms: "Eight men from Cuba, Laos, Mexico, Myanmar, Vietnam, and South Sudan were deported July 4–5, 2025. A federal court initially ordered the deportation flight rerouted to a U.S. military base in Djibouti, where the men were held in a converted shipping container beside an active burn pit — breathing was difficult and they were kept under 24-hour surveillance. The U.S. Supreme Court then cleared the way for deportations to proceed. Six men remain arbitrarily detained by South Sudanese authorities in a guarded compound in Juba, unable to communicate with family or counsel for weeks at a time. The Mexican national, Jesús Muñoz-Gutiérrez, was repatriated in September 2025 after a deal brokered between South Sudan's foreign ministry and the Mexican Embassy in Ethiopia; he told journalists he 'felt kidnapped.' The remaining men have spent more than five months in detention without charges or due process."
   },
   {
@@ -759,6 +897,9 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "ICE flight", detained: "Information withheld",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "Yes (details limited)",
+    intlResponses: [
+      { date: "Aug 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Urged Uganda to ensure transparency of the agreement and guarantee human rights protections. Expressed concern that the agreement may violate the African Charter on Human and Peoples' Rights and that migrants are being sent to a 'disposal zone' for arbitrary expulsions." }
+    ],
     harms: "Eight third country nationals were transferred from the U.S. to Uganda on April 1, 2026. The cooperation agreement states Uganda will not send anyone to their home country until a final decision on international protection claims is reached — however, enforcement is unclear. Uganda hosts 1.8 million refugees, the largest refugee population in Africa, and its inclusive policies are already strained by aid cuts and donor fatigue. In November 2025, Uganda's Minister of Refugees announced the government would no longer grant refugee status to nationals of countries not at war — specifically citing Eritrea, Ethiopia, and Somalia — raising serious questions about the protection environment for deported individuals. The Netherlands also signed a separate Letter of Intent with Uganda in September 2025 to use the country as its own deportation return hub."
   },
   {
@@ -1062,6 +1203,14 @@ function openSidebar(country) {
   badge.textContent = country.transfersOccurred ? 'Transfers Confirmed' : 'No Known Transfers';
   badge.className = 'transfer-badge ' + (country.transfersOccurred ? 'badge-confirmed' : 'badge-pending');
 
+  const intlResponsesHtml = (country.intlResponses && country.intlResponses.length > 0)
+    ? country.intlResponses.map(r =>
+        `<div class="intl-response">
+          <div class="intl-response-meta">${r.date} &mdash; ${r.body}</div>
+          <div class="intl-response-text">${r.statement}</div>
+        </div>`).join('')
+    : null;
+
   const harmsHtml = (country.harms && country.harms !== 'No known transfers')
     ? `<div class="harms-box">${country.harms}</div>`
     : `<div class="info-value" style="color:#484f58;font-style:italic;">No known transfers — no harms documented</div>`;
@@ -1116,6 +1265,12 @@ function openSidebar(country) {
       <div class="info-label">International Legal Action</div>
       <div class="info-value">${country.intlLegal}</div>
     </div>
+    ${intlResponsesHtml ? `
+    <hr class="divider">
+    <div class="info-block">
+      <div class="info-label">International Responses</div>
+      ${intlResponsesHtml}
+    </div>` : ''}
     <hr class="divider">
     <div class="info-block">
       <div class="info-label">Documented Harms</div>
@@ -1140,12 +1295,27 @@ function closeSidebar() {
 // FILTERS
 // ──────────────────────────────────────────────
 let filterPanelOpen = false;
+let docsPanelOpen = false;
 
 function toggleFilterPanel() {
+  if (docsPanelOpen) toggleDocsPanel();
   filterPanelOpen = !filterPanelOpen;
   document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
   document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
   document.body.classList.toggle('filters-open', filterPanelOpen);
+}
+
+function toggleDocsPanel() {
+  if (filterPanelOpen) {
+    filterPanelOpen = false;
+    document.getElementById('filter-panel').classList.remove('open');
+    document.getElementById('filter-toggle').classList.remove('active');
+    document.body.classList.remove('filters-open');
+  }
+  docsPanelOpen = !docsPanelOpen;
+  document.getElementById('docs-panel').classList.toggle('open', docsPanelOpen);
+  document.getElementById('docs-toggle').classList.toggle('active', docsPanelOpen);
+  document.body.classList.toggle('docs-open', docsPanelOpen);
 }
 
 document.querySelectorAll('.pill').forEach(btn => {
