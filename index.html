@@ -1759,12 +1759,6 @@ function toggleTheme() {
 // Sync button label with saved preference on load
 document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
 
-// Auto-collapse country list on small screens so it doesn't block the globe
-if (window.innerWidth <= 680) {
-  countryListOpen = false;
-  document.getElementById('country-list-body').style.display = 'none';
-  document.getElementById('country-list-arrow').classList.add('closed');
-}
 </script>
 </body>
 </html>
