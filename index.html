@@ -275,7 +275,7 @@
     #country-list {
       position: fixed;
       top: calc(var(--header-h) + 12px); left: 16px;
-      z-index: 100;
+      z-index: 110;
       width: 210px;
       transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       background: rgba(13, 17, 23, 0.92);
@@ -1626,6 +1626,9 @@ function updateCountryListPos() {
 }
 
 updateLayout();
+// Re-measure after mobile browsers finish wrapping/rendering the header
+setTimeout(updateLayout, 100);
+setTimeout(updateLayout, 400);
 window.addEventListener('resize', updateLayout);
 
 function toggleFilterPanel() {
