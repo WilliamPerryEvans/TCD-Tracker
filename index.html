@@ -6,6 +6,7 @@
   <title>Third Country Deportations Tracker</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --header-h: 80px; }
 
     body {
       background: #060c14;
@@ -66,7 +67,7 @@
     #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
 
     /* ── GLOBE ── */
-    #globe-container { position: fixed; inset: 0; top: 58px; }
+    #globe-container { position: fixed; inset: 0; top: var(--header-h); }
 
     /* ── LOADING ── */
     #loading {
@@ -97,7 +98,7 @@
     /* ── SIDEBAR ── */
     #sidebar {
       position: fixed;
-      top: 58px; right: 0; bottom: 0;
+      top: var(--header-h); right: 0; bottom: 0;
       width: 380px;
       background: rgba(13, 17, 23, 0.97);
       backdrop-filter: blur(12px);
@@ -194,7 +195,7 @@
     /* ── FILTER PANEL ── */
     #filter-panel {
       position: fixed;
-      top: 58px; left: 0; right: 0;
+      top: var(--header-h); left: 0; right: 0;
       z-index: 95;
       background: rgba(10, 15, 24, 0.97);
       backdrop-filter: blur(12px);
@@ -270,7 +271,7 @@
     /* ── COUNTRY LIST ── */
     #country-list {
       position: fixed;
-      top: 70px; left: 16px;
+      top: calc(var(--header-h) + 12px); left: 16px;
       z-index: 100;
       width: 210px;
       transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -300,12 +301,11 @@
     #country-list-arrow.closed { transform: rotate(180deg); }
 
     #country-list-body {
-      max-height: calc(100vh - 150px);
+      max-height: calc(100vh - var(--header-h) - 90px);
       overflow-y: auto;
       transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    body.filters-open #country-list { top: 230px; }
-    body.filters-open #country-list-body { max-height: calc(100vh - 310px); }
+    /* country-list position when panels open — handled in JS via updateCountryListPos() */
     #country-list-body::-webkit-scrollbar { width: 3px; }
     #country-list-body::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
 
@@ -382,7 +382,7 @@
     /* ── DOCUMENTS PANEL ── */
     #docs-panel {
       position: fixed;
-      top: 58px; left: 0; right: 0;
+      top: var(--header-h); left: 0; right: 0;
       z-index: 94;
       background: rgba(10, 15, 24, 0.97);
       backdrop-filter: blur(12px);
@@ -428,8 +428,7 @@
       padding-top: 8px;
       line-height: 1.5;
     }
-    body.docs-open #country-list { top: 230px; }
-    body.docs-open #country-list-body { max-height: calc(100vh - 310px); }
+    /* docs-open country-list position — handled in JS via updateCountryListPos() */
   </style>
 </head>
 <body>
@@ -1297,12 +1296,46 @@ function closeSidebar() {
 let filterPanelOpen = false;
 let docsPanelOpen = false;
 
+// ── LAYOUT: measure real header height and keep all panels/containers in sync ──
+function updateLayout() {
+  const h = document.getElementById('header').offsetHeight;
+  document.documentElement.style.setProperty('--header-h', h + 'px');
+  updateCountryListPos();
+}
+
+function updateCountryListPos() {
+  const headerH = document.getElementById('header').offsetHeight;
+  const cl     = document.getElementById('country-list');
+  const clBody = document.getElementById('country-list-body');
+
+  if (filterPanelOpen) {
+    const panelH = document.getElementById('filter-panel').offsetHeight;
+    cl.style.top = (headerH + panelH + 8) + 'px';
+    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
+  } else if (docsPanelOpen) {
+    const panelH = document.getElementById('docs-panel').offsetHeight;
+    cl.style.top = (headerH + panelH + 8) + 'px';
+    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
+  } else {
+    cl.style.top = '';
+    clBody.style.maxHeight = '';
+  }
+}
+
+updateLayout();
+window.addEventListener('resize', updateLayout);
+
 function toggleFilterPanel() {
-  if (docsPanelOpen) toggleDocsPanel();
+  if (docsPanelOpen) {
+    docsPanelOpen = false;
+    document.getElementById('docs-panel').classList.remove('open');
+    document.getElementById('docs-toggle').classList.remove('active');
+  }
   filterPanelOpen = !filterPanelOpen;
   document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
   document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
-  document.body.classList.toggle('filters-open', filterPanelOpen);
+  // Defer measurement until after CSS transition starts and panel has height
+  setTimeout(updateCountryListPos, 20);
 }
 
 function toggleDocsPanel() {
@@ -1310,12 +1343,11 @@ function toggleDocsPanel() {
     filterPanelOpen = false;
     document.getElementById('filter-panel').classList.remove('open');
     document.getElementById('filter-toggle').classList.remove('active');
-    document.body.classList.remove('filters-open');
   }
   docsPanelOpen = !docsPanelOpen;
   document.getElementById('docs-panel').classList.toggle('open', docsPanelOpen);
   document.getElementById('docs-toggle').classList.toggle('active', docsPanelOpen);
-  document.body.classList.toggle('docs-open', docsPanelOpen);
+  setTimeout(updateCountryListPos, 20);
 }
 
 document.querySelectorAll('.pill').forEach(btn => {
