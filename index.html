@@ -42,6 +42,26 @@
     .stat-value.red { color: #f85149; }
     .stat-value.orange { color: #e3b341; }
     .stat-value.blue { color: #58a6ff; }
+    .stat-value.green { color: #3fb950; }
+
+    #region-row {
+      margin-top: 4px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .region-link {
+      cursor: pointer;
+      color: #484f58;
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+    .region-link:hover { color: #8b949e; }
+    .region-link.active { color: #58a6ff; }
+    .region-link strong { font-weight: 700; }
+    .region-sep { margin: 0 5px; color: #21262d; }
 
     #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
 
@@ -331,11 +351,21 @@
   <div id="header-title">
     <h1>Third Country Deportations Tracker</h1>
     <p>Forced transfers under U.S. bilateral agreements &mdash; as of April 2026</p>
+    <div id="region-row">
+      <span class="region-link" id="rl-americas" onclick="setRegionFilter('Americas')">Americas <strong id="rb-americas">14</strong></span>
+      <span class="region-sep">&middot;</span>
+      <span class="region-link" id="rl-africa" onclick="setRegionFilter('Africa')">Africa <strong id="rb-africa">9</strong></span>
+      <span class="region-sep">&middot;</span>
+      <span class="region-link" id="rl-europe" onclick="setRegionFilter('Europe')">Europe <strong id="rb-europe">2</strong></span>
+      <span class="region-sep">&middot;</span>
+      <span class="region-link" id="rl-asia" onclick="setRegionFilter('Asia &amp; Pacific')">Asia &amp; Pacific <strong id="rb-asia">2</strong></span>
+    </div>
   </div>
   <div id="stats-bar">
-    <div class="stat"><div class="stat-value blue" id="stat-total">27</div><div class="stat-label">Countries</div></div>
+    <div class="stat"><div class="stat-value blue" id="stat-total">27</div><div class="stat-label" id="stat-total-label">Countries</div></div>
     <div class="stat"><div class="stat-value red" id="stat-confirmed">0</div><div class="stat-label">With Transfers</div></div>
     <div class="stat"><div class="stat-value orange" id="stat-pending">0</div><div class="stat-label">Agreement Only</div></div>
+    <div class="stat"><div class="stat-value green" id="stat-funding">$54M+</div><div class="stat-label">U.S. Funding</div></div>
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
@@ -400,7 +430,7 @@
 <!-- COUNTRY LIST -->
 <div id="country-list">
   <div id="country-list-header" onclick="toggleCountryList()">
-    <span>All 27 Countries</span>
+    <span id="country-list-title">All Countries</span>
     <span id="country-list-arrow">▲</span>
   </div>
   <div id="country-list-subhead">Click any country to zoom</div>
@@ -455,6 +485,18 @@ const COUNTRIES = [
     harms: "No known transfers"
   },
   {
+    name: "Bhutan", flag: "🇧🇹",
+    lat: 27.5142, lng: 90.4336,
+    agreementType: "No formal agreement — deportations conducted via India",
+    format: "None / Unwritten", agreementDate: "No formal agreement",
+    transfersOccurred: true, transferDates: "March 25, 2025; April 7–14, 2025",
+    cap: "No cap reported", mode: "Commercial/government flight via India", detained: "Mixed — some held under surveillance; others expelled within 24 hours",
+    funding: "No direct financial compensation reported",
+    usLegal: "No legal challenges reported",
+    intlLegal: "Nepal Supreme Court temporarily halted deportations of four men (April 24, 2025)",
+    harms: "At least 27 Nepali-speaking Bhutanese refugees were deported via India, many with U.S. refugee protections — born in refugee camps in Nepal, they have no ties to Bhutan. Bhutan refused to recognize them as nationals; Nepal refused to grant citizenship, leaving many stateless. One man who chose deportation to Bhutan had his documents confiscated and was forcibly expelled into Nepal within 24 hours. Others are hiding in India without immigration status, or have returned to destroyed refugee camp huts where humanitarian aid has long since departed. In June 2025, Nepal issued deportation orders to four individuals. At least one person has died by suicide. Others have gone missing."
+  },
+  {
     name: "Cameroon", flag: "🇨🇲",
     lat: 7.3697, lng: 12.3547,
     agreementType: "Third Country Removal Agreement",
@@ -472,7 +514,7 @@ const COUNTRIES = [
     format: "Formal Written Agreement", agreementDate: "April 3, 2025",
     transfersOccurred: true, transferDates: "February 20, 2025; February 25, 2025",
     cap: "No cap reported", mode: "ICE flight", detained: "Detained",
-    funding: "$7.85 million paid to Costa Rica under the April 2025 agreement",
+    funding: "$7.85 million paid to Costa Rica under the April 2025 agreement", fundingUSD: 7.85,
     usLegal: "RAICES v. Noem", intlLegal: "Constitutional Court case; UN Committee on the Rights of the Child comments",
     harms: "People were arbitrarily detained without a legal basis in a remote facility. They were not provided adequate language, medical, and psychological services — facing extreme heat, mosquitoes, and limited access to water and food. A Costa Rican judge wrote: 'In the 54 years of my career, I had never seen a case that was so damaging to people's fundamental rights, especially dignity and freedom.'"
   },
@@ -505,9 +547,9 @@ const COUNTRIES = [
     format: "Unknown", agreementDate: "Unknown",
     transfersOccurred: true, transferDates: "November 24, 2025; January 22, 2026",
     cap: "No cap reported", mode: "ICE flight", detained: "Not applicable",
-    funding: "$7.5 million",
+    funding: "$7.5 million", fundingUSD: 7.5,
     usLegal: "DVD v. DHS", intlLegal: "No legal challenges reported",
-    harms: "People have been arbitrarily detained upon arrival at a hotel. The individuals report feeling pressured to return to their home countries — either due to detention conditions or explicit government pressure from Equatorial Guinea."
+    harms: "People have been arbitrarily detained upon arrival at a hotel and report being pressured — through detention conditions and direct government pressure — to return to their home countries. The $7.5 million payment to Equatorial Guinea was drawn from the U.S. Department of State's 'Migration and Refugee Assistance' account — funds normally reserved for humanitarian aid. In November 2025, Senator Jeanne Shaheen wrote to Secretary of State Rubio demanding an explanation for this highly unusual transfer. The November 2025 deportation flight tracked by Human Rights First departed from Alexandria, Louisiana, a known ICE deportation hub."
   },
   {
     name: "El Salvador", flag: "🇸🇻",
@@ -516,7 +558,7 @@ const COUNTRIES = [
     format: "Diplomatic Notes", agreementDate: "March 13, 2025",
     transfersOccurred: true, transferDates: "March 15, 2025; March 31, 2025; April 13, 2025",
     cap: "No cap reported", mode: "ICE flight, Military flight", detained: "Detained",
-    funding: "$4.76 million",
+    funding: "$4.76 million", fundingUSD: 4.76,
     usLegal: "DVD v. DHS, JGG v. Trump (at least 16 lawsuits including Alien Enemies Act challenges)",
     intlLegal: "Quintanilla-Garcia, IACHR Precautionary Measure; Martinez-Ruano et al., IACHR Precautionary Measure",
     harms: "People were imprisoned in CECOT, El Salvador's notorious high-security prison. While incarcerated, they were subjected to indefinite and incommunicado detention amounting to enforced disappearances, torture, sexual assault, and severe beatings. After months, Venezuelan individuals were expelled onward to Venezuela — chain refoulement. Dozens of Salvadorans also transferred remain detained incommunicado, their fates unknown."
@@ -528,9 +570,9 @@ const COUNTRIES = [
     format: "Memorandum of Understanding", agreementDate: "May 14, 2025",
     transfersOccurred: true, transferDates: "July 15, 2025; October 6, 2025; March 11, 2026",
     cap: "No cap reported", mode: "ICE flight, Military flight", detained: "Detained",
-    funding: "$5.1 million",
+    funding: "$5.1 million", fundingUSD: 5.1,
     usLegal: "DVD v. DHS", intlLegal: "High Court Case No. 1623/25; GSLC et al. v. Kingdom of Eswatini",
-    harms: "19 people are incarcerated in a maximum-security prison without charges, due process, or meaningful access to counsel. Some have been jailed for months, including a Cuban man who went on a hunger strike in October to protest conditions."
+    harms: "Over 19 people were incarcerated across two flights at Matsapha Correctional Centre — a maximum-security prison — without charges, due process, or access to counsel. Roberto Mosquera del Peral (Cuba), from the July 2025 flight, went on a 30-day hunger strike in October to protest conditions; the Eswatini government falsely described him as 'fasting and praying.' Orville Etoria (Jamaica) was eventually repatriated in September with IOM support. A U.S. attorney representing five of the men said: 'I cannot call them. I cannot email them. I cannot communicate through local counsel because the Eswatini government blocks all attorney access.' An Eswatini lawyer was denied access to clients for weeks even after filing official court representation papers. U.S. State Department reports document 'numerous credible reports' of torture and cruel treatment in Eswatini's detention facilities. Four men sued the Eswatini government for due process violations, but proceedings stalled when a court judge failed to appear without explanation."
   },
   {
     name: "Ghana", flag: "🇬🇭",
@@ -541,7 +583,7 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "ICE flight, Military flight", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "DVD v. DHS, D.A. v. Noem", intlLegal: "Democracy Hub v. Government of Ghana; Oliver Barker-Vormawor et al. v. Government of Ghana",
-    harms: "The Ghanaian government forcibly deported people to their home countries — including a Gambian man granted U.S. protection due to his sexuality, Togolese women who fled FGM, and a nurse who fled war in Sierra Leone. One woman attempted suicide before being deported. Enforced disappearances were documented."
+    harms: "Since September 2025, at least 42 individuals have been deported. Many were transported on military cargo planes, shackled at hands, waist, and ankles. At least two individuals held withholding of removal orders and three held CAT protection — meaning the U.S. had promised not to deport them to their countries of origin — yet Ghana sent them onward within days. Eight individuals were left in Togo without documents. A bisexual Gambian man granted U.S. protection due to his sexuality was sent to Gambia, where same-sex relations are criminalized. A Sierra Leonean nurse who fled war and held U.S. withholding of removal was dragged across the floor when she resisted being bused to Sierra Leone, sustaining injuries. At least eleven men were held at Dema camp, a remote military training facility outside Accra with extreme heat, mosquitoes, and unsanitary water. One man was detained at the airport for five days with no phone access, shower, or change of clothes. Enforced disappearances were documented."
   },
   {
     name: "Guatemala", flag: "🇬🇹",
@@ -627,7 +669,7 @@ const COUNTRIES = [
     format: "Memorandum of Understanding", agreementDate: "December 24, 2025",
     transfersOccurred: false, transferDates: "None",
     cap: "10 people at a time until 75 third country nationals remain in Palau", mode: "Not applicable", detained: "Not applicable",
-    funding: "$7.5 million",
+    funding: "$7.5 million", fundingUSD: 7.5,
     usLegal: "No legal challenges reported", intlLegal: "Palauan Senate and two citizens filed lawsuit calling MOU unconstitutional. Court rejected it. Senate then passed legislation barring entry of those expelled by foreign governments.",
     harms: "No known transfers"
   },
@@ -638,7 +680,7 @@ const COUNTRIES = [
     format: "Memorandum of Understanding", agreementDate: "February 2, 2025",
     transfersOccurred: true, transferDates: "February 12, 2025; February 14, 2025; February 15, 2025",
     cap: "No cap reported", mode: "Military flight", detained: "Detained",
-    funding: "At least $14 million for deportation flights; U.S. also paid for migrants' stay",
+    funding: "At least $14 million for deportation flights; U.S. also paid for migrants' stay", fundingUSD: 14, fundingExtra: true,
     usLegal: "RAICES v. Noem", intlLegal: "GSLC et al. v. Panama; Petition to IACHR",
     harms: "People were detained without a legal basis — first in a hotel incommunicado, later in a remote jungle camp with terrible conditions: extreme heat, non-potable water, rotten food, unsanitary conditions, and denial of phone access. 170 people returned to their home countries within a week — chain refoulement concerns — others were detained for nearly a month."
   },
@@ -671,9 +713,9 @@ const COUNTRIES = [
     format: "Memorandum of Understanding", agreementDate: "July 3, 2025",
     transfersOccurred: true, transferDates: "August 16, 2025; August 17, 2025",
     cap: "Up to 250 third country nationals", mode: "ICE flight, Military flight", detained: "No known detention",
-    funding: "$7.5 million",
+    funding: "$7.5 million", fundingUSD: 7.5,
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "Publicly available reporting reveals significant information gaps about the well-being of the seven individuals transferred to Rwanda in August 2025, making it difficult to assess the full scope of harms they may be experiencing."
+    harms: "Seven individuals of unknown nationalities arrived in mid-August 2025. The Rwandan government stated that three would return to their home countries and four expressed a wish to remain in Rwanda, where they were promised accommodation, workforce training, and healthcare. IOM and Rwandan social services have visited the individuals. Significant information gaps remain about their well-being and whether protection claims have been assessed. Context: Rwanda's reference as an 'established' migration partner echoes the UK-Rwanda Asylum Partnership — scrapped in 2024 after the UK Supreme Court declared it unlawful due to the risk of refoulement, before any asylum seekers were ever sent."
   },
   {
     name: "South Sudan", flag: "🇸🇸",
@@ -684,7 +726,7 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Military flight", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "DVD v. DHS", intlLegal: "No legal challenges reported",
-    harms: "Six of eight people who were forcibly transferred remain arbitrarily detained by the South Sudanese government in a guarded complex in Juba, unable to communicate with legal counsel or family members for weeks at a time. The men have spent more than five months in the prison."
+    harms: "Eight men from Cuba, Laos, Mexico, Myanmar, Vietnam, and South Sudan were deported July 4–5, 2025. A federal court initially ordered the deportation flight rerouted to a U.S. military base in Djibouti, where the men were held in a converted shipping container beside an active burn pit — breathing was difficult and they were kept under 24-hour surveillance. The U.S. Supreme Court then cleared the way for deportations to proceed. Six men remain arbitrarily detained by South Sudanese authorities in a guarded compound in Juba, unable to communicate with family or counsel for weeks at a time. The Mexican national, Jesús Muñoz-Gutiérrez, was repatriated in September 2025 after a deal brokered between South Sudan's foreign ministry and the Mexican Embassy in Ethiopia; he told journalists he 'felt kidnapped.' The remaining men have spent more than five months in detention without charges or due process."
   },
   {
     name: "St. Kitts and Nevis", flag: "🇰🇳",
@@ -717,7 +759,7 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "ICE flight", detained: "Information withheld",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "Yes (details limited)",
-    harms: "8 third country nationals were transferred from the U.S. to Uganda."
+    harms: "Eight third country nationals were transferred from the U.S. to Uganda on April 1, 2026. The cooperation agreement states Uganda will not send anyone to their home country until a final decision on international protection claims is reached — however, enforcement is unclear. Uganda hosts 1.8 million refugees, the largest refugee population in Africa, and its inclusive policies are already strained by aid cuts and donor fatigue. In November 2025, Uganda's Minister of Refugees announced the government would no longer grant refugee status to nationals of countries not at war — specifically citing Eritrea, Ethiopia, and Somalia — raising serious questions about the protection environment for deported individuals. The Netherlands also signed a separate Letter of Intent with Uganda in September 2025 to use the country as its own deportation return hub."
   },
   {
     name: "Uzbekistan", flag: "🇺🇿",
@@ -738,6 +780,7 @@ const COUNTRIES = [
 // ──────────────────────────────────────────────
 const ISO_TO_NAME = {
   '028': 'Antigua and Barbuda',
+  '064': 'Bhutan',
   '084': 'Belize',
   '120': 'Cameroon',
   '188': 'Costa Rica',
@@ -777,7 +820,7 @@ const REGION_GROUPS = {
   'Africa':        ['Cameroon','Equatorial Guinea','Eswatini','Ghana','Liberia',
                     'Libya','Rwanda','South Sudan','Uganda'],
   'Europe':        ['Kosovo','Poland'],
-  'Asia & Pacific':['Palau','Uzbekistan']
+  'Asia & Pacific':['Bhutan','Palau','Uzbekistan']
 };
 const NAME_TO_REGION = {};
 Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO_REGION[n] = r));
@@ -810,11 +853,59 @@ function matchesFilters(c) {
   return true;
 }
 
-// Stats
-const confirmed = COUNTRIES.filter(c => c.transfersOccurred).length;
-const pending = COUNTRIES.filter(c => !c.transfersOccurred).length;
-document.getElementById('stat-confirmed').textContent = confirmed;
-document.getElementById('stat-pending').textContent = pending;
+// ── DYNAMIC STATS ──
+function updateStats() {
+  const visible = COUNTRIES.filter(matchesFilters);
+  const isFiltered = Object.values(filters).some(v => v !== '');
+
+  document.getElementById('stat-total').textContent = visible.length;
+  document.getElementById('stat-confirmed').textContent = visible.filter(c => c.transfersOccurred).length;
+  document.getElementById('stat-pending').textContent = visible.filter(c => !c.transfersOccurred).length;
+  document.getElementById('stat-total-label').textContent = isFiltered ? `of ${COUNTRIES.length} shown` : 'Countries';
+
+  // Funding: sum quantified amounts; append + if any visible country has extra/unquantified funding
+  const totalUSD = visible.reduce((s, c) => s + (c.fundingUSD || 0), 0);
+  const hasExtra = visible.some(c => c.fundingExtra || (hasFunding(c) && !c.fundingUSD));
+  const fundingEl = document.getElementById('stat-funding');
+  if (totalUSD > 0) {
+    const rounded = Math.round(totalUSD * 10) / 10; // one decimal if needed
+    const display = Number.isInteger(rounded) ? rounded : rounded.toFixed(1);
+    fundingEl.textContent = `$${display}M${hasExtra ? '+' : ''}`;
+  } else if (hasExtra) {
+    fundingEl.textContent = 'Reported';
+  } else {
+    fundingEl.textContent = '—'; // em dash
+  }
+
+  // Regional breakdown counts + active highlight
+  const regionKeys = [
+    ['Americas', 'rl-americas', 'rb-americas'],
+    ['Africa',   'rl-africa',   'rb-africa'],
+    ['Europe',   'rl-europe',   'rb-europe'],
+    ['Asia & Pacific', 'rl-asia', 'rb-asia']
+  ];
+  regionKeys.forEach(([region, linkId, countId]) => {
+    const count = visible.filter(c => NAME_TO_REGION[c.name] === region).length;
+    const countEl = document.getElementById(countId);
+    const linkEl  = document.getElementById(linkId);
+    if (countEl) countEl.textContent = count;
+    if (linkEl)  linkEl.classList.toggle('active', filters.region === region);
+  });
+}
+
+// ── SET REGION FILTER (from region-row clicks) ──
+function setRegionFilter(region) {
+  filters.region = filters.region === region ? '' : region;
+  document.querySelectorAll('.pill[data-group="region"]').forEach(p => {
+    p.classList.toggle('active', p.dataset.value === filters.region);
+  });
+  updateFilterCount();
+  updateStats();
+  refreshPolygons();
+  buildCountryList();
+}
+
+updateStats();
 
 const USA = { lat: 38.9, lng: -77.0 };
 const globeEl = document.getElementById('globe-container');
@@ -1066,8 +1157,9 @@ document.querySelectorAll('.pill').forEach(btn => {
     btn.classList.add('active');
     filters[group] = value;
     updateFilterCount();
+    updateStats();
     refreshPolygons();
-    buildCountryList(); // re-sort list to reflect filter
+    buildCountryList();
   });
 });
 
@@ -1077,6 +1169,7 @@ function clearFilters() {
     p.classList.toggle('active', p.dataset.value === '');
   });
   updateFilterCount();
+  updateStats();
   refreshPolygons();
   buildCountryList();
 }
@@ -1113,6 +1206,11 @@ function buildCountryList() {
   sorted(false).forEach(c => html += itemHtml(c));
 
   body.innerHTML = html;
+  const visible = COUNTRIES.filter(matchesFilters).length;
+  const isFiltered = Object.values(filters).some(v => v !== '');
+  document.getElementById('country-list-title').textContent = isFiltered
+    ? `${visible} of ${COUNTRIES.length} Countries`
+    : `All ${COUNTRIES.length} Countries`;
 }
 
 function flyTo(name) {
