@@ -743,8 +743,8 @@
   <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <div id="view-toggle">
-    <button class="view-btn active" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
-    <button class="view-btn" id="view-map-btn" onclick="switchView('map')">Map</button>
+    <button class="view-btn active" id="view-map-btn" onclick="switchView('map')">Map</button>
+    <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
@@ -1436,7 +1436,7 @@ let cachedGeoData = null;
 let leafletMap = null;
 let mapGeoJsonLayer = null;
 let mapArcs = [];
-let viewMode = 'globe';
+let viewMode = 'map';
 let mapInitialized = false;
 
 // Named accessors — re-applied reactively when selection or filters change
@@ -1575,6 +1575,14 @@ async function initGlobe() {
       globe.width(globeEl.clientWidth).height(globeEl.clientHeight);
     });
 
+    // Map is the default view — switch to it now that geo data is ready
+    if (viewMode === 'map') {
+      globeEl.style.display = 'none';
+      document.getElementById('map-container').style.display = 'block';
+      initMap();
+      mapInitialized = true;
+    }
+
   } catch (err) {
     loadingEl.innerHTML = '<span style="color:#f85149;">Failed to load map data. Please refresh.</span>';
     console.error(err);
@@ -1608,6 +1616,7 @@ function switchView(mode) {
   } else {
     mapEl.style.display = 'none';
     globeEl.style.display = 'block';
+    if (globe) globe.width(globeEl.clientWidth).height(globeEl.clientHeight);
   }
 }
 
@@ -1644,7 +1653,7 @@ function initMap() {
   leafletMap = L.map('map-container', {
     center: [20, -20],
     zoom: 2,
-    minZoom: 1,
+    minZoom: 2,
     maxZoom: 8,
     zoomControl: true,
     worldCopyJump: false,
