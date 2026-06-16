@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
   <title>Third Country Deportations Tracker</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -637,6 +638,94 @@
 
       #hint { display: none; }
     }
+
+    /* ── VIEW TOGGLE (Globe / Map) ── */
+    #view-toggle {
+      display: flex;
+      border: 1px solid rgba(88,166,255,0.25);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .view-btn {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 12px; font-weight: 600;
+      padding: 5px 12px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-btn:hover { background: rgba(88,166,255,0.1); color: #c9d1d9; }
+    .view-btn.active { background: rgba(88,166,255,0.18); color: #58a6ff; }
+    .view-btn:not(:last-child) { border-right: 1px solid rgba(88,166,255,0.25); }
+
+    /* ── MAP CONTAINER ── */
+    #map-container {
+      position: fixed;
+      inset: 0;
+      top: var(--header-h);
+      z-index: 0;
+      display: none;
+    }
+
+    /* ── DEPORTATION ARC ANIMATION (flat map) ── */
+    .map-arc {
+      stroke-dasharray: 8 6;
+      animation: arc-flow 3s linear infinite;
+    }
+    @keyframes arc-flow { to { stroke-dashoffset: -42; } }
+
+    /* ── LEAFLET OVERRIDES ── */
+    .leaflet-container {
+      background: #060c14;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .leaflet-control-attribution {
+      background: rgba(13,17,23,0.8) !important;
+      color: #484f58 !important;
+      font-size: 9px !important;
+    }
+    .leaflet-control-attribution a { color: #484f58 !important; }
+    .leaflet-control-zoom a {
+      background: rgba(13,17,23,0.92) !important;
+      border-color: #21262d !important;
+      color: #8b949e !important;
+    }
+    .leaflet-control-zoom a:hover {
+      background: rgba(33,38,45,0.95) !important;
+      color: #f0f6fc !important;
+    }
+    /* Tooltip rendered as raw HTML — strip Leaflet's default tooltip chrome */
+    .leaflet-tooltip {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .leaflet-tooltip::before { display: none !important; }
+
+    body.light-mode .leaflet-container { background: #ddeaf3; }
+    body.light-mode .leaflet-control-attribution {
+      background: rgba(238,242,247,0.9) !important;
+      color: #8c949e !important;
+    }
+    body.light-mode .leaflet-control-attribution a { color: #8c949e !important; }
+    body.light-mode .leaflet-control-zoom a {
+      background: rgba(238,242,247,0.95) !important;
+      border-color: #d0d7de !important;
+      color: #57606a !important;
+    }
+    body.light-mode .leaflet-control-zoom a:hover {
+      background: rgba(248,250,252,1) !important;
+      color: #24292f !important;
+    }
+
+    body.light-mode #view-toggle { border-color: rgba(9,105,218,0.25); }
+    body.light-mode .view-btn { color: #57606a; }
+    body.light-mode .view-btn:hover { background: rgba(9,105,218,0.08); color: #24292f; }
+    body.light-mode .view-btn.active { background: rgba(9,105,218,0.14); color: #0969da; }
+    body.light-mode .view-btn:not(:last-child) { border-right-color: rgba(9,105,218,0.25); }
   </style>
 </head>
 <body>
@@ -665,6 +754,10 @@
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
   <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
+  <div id="view-toggle">
+    <button class="view-btn active" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
+    <button class="view-btn" id="view-map-btn" onclick="switchView('map')">Map</button>
+  </div>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
 </div>
@@ -831,6 +924,9 @@
 <!-- GLOBE -->
 <div id="globe-container"></div>
 
+<!-- MAP (flat Leaflet view) -->
+<div id="map-container"></div>
+
 <!-- LOADING -->
 <div id="loading"><div class="spinner"></div>Loading world map&hellip;</div>
 
@@ -870,6 +966,7 @@
 
 <script src="https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 // ──────────────────────────────────────────────
@@ -1346,6 +1443,14 @@ const globeEl = document.getElementById('globe-container');
 let globe = null;
 let selectedName = null;
 
+// ── MAP STATE ──
+let cachedGeoData = null;
+let leafletMap = null;
+let mapGeoJsonLayer = null;
+let mapArcs = [];
+let viewMode = 'globe';
+let mapInitialized = false;
+
 // Named accessors — re-applied reactively when selection or filters change
 function polyCapColor(d) {
   if (!d._tcd) return darkMode ? '#162438' : '#c8d8e8';
@@ -1384,40 +1489,44 @@ function polygonLabelFn(d) {
 }
 
 function refreshPolygons() {
-  if (!globe) return;
-  globe.polygonCapColor(polyCapColor).polygonStrokeColor(polyStroke).polygonAltitude(polyAlt);
-  // Also filter arcs to only matching confirmed-transfer countries
-  const arcData = COUNTRIES.filter(c => c.transfersOccurred && matchesFilters(c));
-  globe.arcsData(arcData);
+  if (globe) {
+    globe.polygonCapColor(polyCapColor).polygonStrokeColor(polyStroke).polygonAltitude(polyAlt);
+    const arcData = COUNTRIES.filter(c => c.transfersOccurred && matchesFilters(c));
+    globe.arcsData(arcData);
+  }
+  refreshMapPolygons();
 }
 
 // ──────────────────────────────────────────────
-// GLOBE INIT (async — loads topojson first)
+// SHARED GEO DATA (fetched once, used by both views)
+// ──────────────────────────────────────────────
+async function fetchGeoData() {
+  if (cachedGeoData) return cachedGeoData;
+  const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585']);
+  const [topo110, topo50] = await Promise.all([
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json())
+  ]);
+  const mainFeatures   = topojson.feature(topo110, topo110.objects.countries).features;
+  const islandFeatures = topojson.feature(topo50,  topo50.objects.countries).features
+    .filter(f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0')));
+  const allFeatures = [...mainFeatures, ...islandFeatures].map(f => {
+    const iso  = String(f.id).padStart(3, '0');
+    const name = ISO_TO_NAME[iso];
+    return { ...f, _tcd: name ? DATA_BY_NAME[name] : null };
+  });
+  cachedGeoData = { allFeatures };
+  return cachedGeoData;
+}
+
+// ──────────────────────────────────────────────
+// GLOBE INIT
 // ──────────────────────────────────────────────
 async function initGlobe() {
   const loadingEl = document.getElementById('loading');
 
   try {
-    // ISO numeric codes for islands absent from 110m but present in 50m
-    const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585']);
-
-    // Fetch both resolutions in parallel — 110m for the world, 50m only for small islands
-    const [topo110, topo50] = await Promise.all([
-      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
-      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json())
-    ]);
-
-    const mainFeatures   = topojson.feature(topo110, topo110.objects.countries).features;
-    const islandFeatures = topojson.feature(topo50,  topo50.objects.countries).features
-      .filter(f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0')));
-
-    // Merge and enrich with TCD data
-    const allFeatures = [...mainFeatures, ...islandFeatures].map(f => {
-      const iso  = String(f.id).padStart(3, '0');
-      const name = ISO_TO_NAME[iso];
-      return { ...f, _tcd: name ? DATA_BY_NAME[name] : null };
-    });
-
+    const { allFeatures } = await fetchGeoData();
     loadingEl.style.display = 'none';
 
     // Solid ocean color canvas — no external image request, eliminates texture z-fighting
@@ -1487,15 +1596,188 @@ async function initGlobe() {
 initGlobe();
 
 // ──────────────────────────────────────────────
+// FLAT MAP VIEW
+// ──────────────────────────────────────────────
+function switchView(mode) {
+  viewMode = mode;
+  const mapEl = document.getElementById('map-container');
+  document.getElementById('view-globe-btn').classList.toggle('active', mode === 'globe');
+  document.getElementById('view-map-btn').classList.toggle('active', mode === 'map');
+
+  if (mode === 'map') {
+    globeEl.style.display = 'none';
+    mapEl.style.display = 'block';
+    if (!mapInitialized) {
+      if (!cachedGeoData) {
+        mapEl.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#8b949e;font-size:13px;">Loading map…</div>';
+        return;
+      }
+      initMap();
+      mapInitialized = true;
+    } else {
+      leafletMap.invalidateSize();
+    }
+  } else {
+    mapEl.style.display = 'none';
+    globeEl.style.display = 'block';
+  }
+}
+
+function initMap() {
+  const mapEl = document.getElementById('map-container');
+  mapEl.innerHTML = '';
+
+  leafletMap = L.map('map-container', {
+    center: [20, -20],
+    zoom: 2,
+    minZoom: 1,
+    maxZoom: 8,
+    zoomControl: true
+  });
+
+  const tileUrl = darkMode
+    ? 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+
+  window._mapTileLayer = L.tileLayer(tileUrl, {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  // Deduplicate features: for small islands, keep only the last (50m) occurrence
+  const SMALL_ISO = new Set(['028', '212', '659', '662', '585']);
+  const seenSmall = new Set();
+  const mapFeatures = [];
+  for (let i = cachedGeoData.allFeatures.length - 1; i >= 0; i--) {
+    const f = cachedGeoData.allFeatures[i];
+    const iso = String(f.id).padStart(3, '0');
+    if (SMALL_ISO.has(iso)) {
+      if (seenSmall.has(iso)) continue;
+      seenSmall.add(iso);
+    }
+    mapFeatures.unshift(f);
+  }
+
+  mapGeoJsonLayer = L.geoJSON({ type: 'FeatureCollection', features: mapFeatures }, {
+    style: mapPolyStyle,
+    onEachFeature(feature, layer) {
+      if (!feature._tcd) return;
+      layer.bindTooltip(() => mapTooltipContent(feature._tcd), {
+        sticky: true,
+        opacity: 1,
+        className: 'map-tooltip',
+        direction: 'top'
+      });
+      layer.on('click', () => openSidebar(feature._tcd));
+      layer.on('mouseover', function() {
+        if (!matchesFilters(feature._tcd)) return;
+        this.setStyle({ fillOpacity: 0.8, weight: feature._tcd.transfersOccurred ? 2.5 : 2 });
+        leafletMap.getContainer().style.cursor = 'pointer';
+      });
+      layer.on('mouseout', function() {
+        mapGeoJsonLayer.resetStyle(this);
+        leafletMap.getContainer().style.cursor = '';
+      });
+    }
+  }).addTo(leafletMap);
+
+  drawMapArcs();
+}
+
+function greatCirclePoints(lat1, lng1, lat2, lng2) {
+  const toR = d => d * Math.PI / 180;
+  const toD = r => r * 180 / Math.PI;
+  const φ1 = toR(lat1), λ1 = toR(lng1), φ2 = toR(lat2), λ2 = toR(lng2);
+  const d = 2 * Math.asin(Math.sqrt(
+    Math.pow(Math.sin((φ2 - φ1) / 2), 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.pow(Math.sin((λ2 - λ1) / 2), 2)
+  ));
+  if (d < 0.001) return [[lat1, lng1], [lat2, lng2]];
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const f = i / 60;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
+    const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
+    const z = A * Math.sin(φ1) + B * Math.sin(φ2);
+    pts.push([toD(Math.atan2(z, Math.sqrt(x * x + y * y))), toD(Math.atan2(y, x))]);
+  }
+  return pts;
+}
+
+function mapPolyStyle(feature) {
+  if (!feature._tcd) return {
+    fillColor: darkMode ? '#1a2535' : '#c5d5df',
+    fillOpacity: 0.45,
+    color: darkMode ? 'rgba(50,72,100,0.35)' : 'rgba(140,165,185,0.35)',
+    weight: 0.5
+  };
+  if (!matchesFilters(feature._tcd)) return {
+    fillColor: darkMode ? '#162030' : '#c8d8e8',
+    fillOpacity: 0.25,
+    color: darkMode ? 'rgba(40,55,75,0.25)' : 'rgba(150,175,195,0.25)',
+    weight: 0.5
+  };
+  const confirmed = feature._tcd.transfersOccurred;
+  const selected  = feature._tcd.name === selectedName;
+  return {
+    fillColor: confirmed ? '#f85149' : '#e3b341',
+    fillOpacity: selected ? 0.85 : 0.6,
+    color: confirmed ? '#ff6b60' : '#f0c840',
+    weight: selected ? 2.5 : 1.5
+  };
+}
+
+function mapTooltipContent(c) {
+  const color  = c.transfersOccurred ? '#f85149' : '#e3b341';
+  const status = c.transfersOccurred ? '● Transfers confirmed' : '○ Agreement only';
+  const bg     = darkMode ? 'rgba(13,17,23,0.93)'  : 'rgba(248,250,252,0.97)';
+  const border = darkMode ? '#21262d'               : '#d0d7de';
+  const title  = darkMode ? '#f0f6fc'               : '#24292f';
+  const hint   = darkMode ? '#484f58'               : '#8c949e';
+  return `<div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none;white-space:nowrap;">
+    <div style="font-size:15px;font-weight:700;color:${title};">${c.flag} ${c.name}</div>
+    <div style="font-size:12px;color:${color};margin-top:4px;">${status}</div>
+    <div style="font-size:11px;color:${hint};margin-top:3px;">Click to see details</div>
+  </div>`;
+}
+
+function drawMapArcs() {
+  mapArcs.forEach(a => leafletMap.removeLayer(a));
+  mapArcs = [];
+  COUNTRIES.filter(c => c.transfersOccurred && matchesFilters(c)).forEach(c => {
+    const pts = greatCirclePoints(USA.lat, USA.lng, c.lat, c.lng);
+    const arc = L.polyline(pts, {
+      color: 'rgba(248,81,73,0.55)',
+      weight: 1.5,
+      interactive: false,
+      className: 'map-arc'
+    }).addTo(leafletMap);
+    mapArcs.push(arc);
+  });
+}
+
+function refreshMapPolygons() {
+  if (!mapGeoJsonLayer) return;
+  mapGeoJsonLayer.setStyle(mapPolyStyle);
+  drawMapArcs();
+}
+
+// ──────────────────────────────────────────────
 // SIDEBAR
 // ──────────────────────────────────────────────
 function openSidebar(country) {
   selectedName = country.name;
   refreshPolygons();
 
-  if (globe) {
+  if (globe && viewMode === 'globe') {
     globe.controls().autoRotate = false;
     globe.pointOfView({ lat: country.lat, lng: country.lng, altitude: 1.9 }, 800);
+  }
+  if (leafletMap && viewMode === 'map') {
+    leafletMap.flyTo([country.lat, country.lng], 5, { duration: 0.9 });
   }
 
   document.getElementById('sidebar-flag').textContent = country.flag;
@@ -1587,9 +1869,12 @@ function closeSidebar() {
   selectedName = null;
   refreshPolygons();
   document.getElementById('sidebar').classList.remove('open');
-  if (globe) {
+  if (globe && viewMode === 'globe') {
     globe.controls().autoRotate = true;
     globe.pointOfView({ lat: 20, lng: -30, altitude: 2.2 }, 800);
+  }
+  if (leafletMap && viewMode === 'map') {
+    leafletMap.flyTo([20, -20], 2, { duration: 0.9 });
   }
 }
 
@@ -1747,6 +2032,18 @@ function updateGlobeTheme() {
   if (globe) {
     globe.backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)');
     globe.polygonLabel(polygonLabelFn);
+  }
+  if (leafletMap && window._mapTileLayer) {
+    leafletMap.removeLayer(window._mapTileLayer);
+    const tileUrl = darkMode
+      ? 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+    window._mapTileLayer = L.tileLayer(tileUrl, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(leafletMap);
+    window._mapTileLayer.bringToBack();
   }
   refreshPolygons();
 }
