@@ -669,13 +669,6 @@
       display: none;
     }
 
-    /* ── DEPORTATION ARC ANIMATION (flat map) ── */
-    .map-arc {
-      stroke-dasharray: 8 6;
-      animation: arc-flow 3s linear infinite;
-    }
-    @keyframes arc-flow { to { stroke-dashoffset: -42; } }
-
     /* ── LEAFLET OVERRIDES ── */
     .leaflet-container {
       background: #060c14;
@@ -1645,12 +1638,14 @@ function initMap() {
     maxZoom: 19
   }).addTo(leafletMap);
 
-  // Deduplicate features: for small islands, keep only the last (50m) occurrence
+  // Only overlay the 27 TCD countries — tile layer handles world geography.
+  // For small islands, keep only the last (higher-res 50m) occurrence.
   const SMALL_ISO = new Set(['028', '212', '659', '662', '585']);
   const seenSmall = new Set();
   const mapFeatures = [];
   for (let i = cachedGeoData.allFeatures.length - 1; i >= 0; i--) {
     const f = cachedGeoData.allFeatures[i];
+    if (!f._tcd) continue;
     const iso = String(f.id).padStart(3, '0');
     if (SMALL_ISO.has(iso)) {
       if (seenSmall.has(iso)) continue;
@@ -1681,8 +1676,6 @@ function initMap() {
       });
     }
   }).addTo(leafletMap);
-
-  drawMapArcs();
 }
 
 function greatCirclePoints(lat1, lng1, lat2, lng2) {
@@ -1708,23 +1701,17 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
 }
 
 function mapPolyStyle(feature) {
-  if (!feature._tcd) return {
-    fillColor: darkMode ? '#1a2535' : '#c5d5df',
-    fillOpacity: 0.45,
-    color: darkMode ? 'rgba(50,72,100,0.35)' : 'rgba(140,165,185,0.35)',
-    weight: 0.5
-  };
-  if (!matchesFilters(feature._tcd)) return {
-    fillColor: darkMode ? '#162030' : '#c8d8e8',
+  if (!feature._tcd || !matchesFilters(feature._tcd)) return {
+    fillColor: darkMode ? '#30363d' : '#b0c4ce',
     fillOpacity: 0.25,
-    color: darkMode ? 'rgba(40,55,75,0.25)' : 'rgba(150,175,195,0.25)',
-    weight: 0.5
+    color: darkMode ? 'rgba(60,80,100,0.4)' : 'rgba(120,150,170,0.4)',
+    weight: 1
   };
   const confirmed = feature._tcd.transfersOccurred;
   const selected  = feature._tcd.name === selectedName;
   return {
     fillColor: confirmed ? '#f85149' : '#e3b341',
-    fillOpacity: selected ? 0.85 : 0.6,
+    fillOpacity: selected ? 0.85 : 0.65,
     color: confirmed ? '#ff6b60' : '#f0c840',
     weight: selected ? 2.5 : 1.5
   };
@@ -1762,7 +1749,6 @@ function drawMapArcs() {
 function refreshMapPolygons() {
   if (!mapGeoJsonLayer) return;
   mapGeoJsonLayer.setStyle(mapPolyStyle);
-  drawMapArcs();
 }
 
 // ──────────────────────────────────────────────
