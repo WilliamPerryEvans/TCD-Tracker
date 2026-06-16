@@ -667,19 +667,16 @@
       top: var(--header-h);
       z-index: 0;
       display: none;
+      background: #060c14;
     }
+    body.light-mode #map-container { background: #9abfd4; }
 
     /* ── LEAFLET OVERRIDES ── */
     .leaflet-container {
       background: #060c14;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
-    .leaflet-control-attribution {
-      background: rgba(13,17,23,0.8) !important;
-      color: #484f58 !important;
-      font-size: 9px !important;
-    }
-    .leaflet-control-attribution a { color: #484f58 !important; }
+    .leaflet-control-attribution { display: none !important; }
     .leaflet-control-zoom a {
       background: rgba(13,17,23,0.92) !important;
       border-color: #21262d !important;
@@ -689,6 +686,9 @@
       background: rgba(33,38,45,0.95) !important;
       color: #f0f6fc !important;
     }
+    /* Remove browser focus ring on clicked polygons */
+    .leaflet-interactive:focus { outline: none; }
+
     /* Tooltip rendered as raw HTML — strip Leaflet's default tooltip chrome */
     .leaflet-tooltip {
       background: transparent !important;
@@ -699,11 +699,6 @@
     .leaflet-tooltip::before { display: none !important; }
 
     body.light-mode .leaflet-container { background: #ddeaf3; }
-    body.light-mode .leaflet-control-attribution {
-      background: rgba(238,242,247,0.9) !important;
-      color: #8c949e !important;
-    }
-    body.light-mode .leaflet-control-attribution a { color: #8c949e !important; }
     body.light-mode .leaflet-control-zoom a {
       background: rgba(238,242,247,0.95) !important;
       border-color: #d0d7de !important;
@@ -1620,32 +1615,25 @@ function initMap() {
   const mapEl = document.getElementById('map-container');
   mapEl.innerHTML = '';
 
+  // maxBounds + worldCopyJump:false keeps the map to a single world
   leafletMap = L.map('map-container', {
     center: [20, -20],
     zoom: 2,
     minZoom: 1,
     maxZoom: 8,
-    zoomControl: true
+    zoomControl: true,
+    worldCopyJump: false,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0
   });
 
-  const tileUrl = darkMode
-    ? 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-
-  window._mapTileLayer = L.tileLayer(tileUrl, {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(leafletMap);
-
-  // Only overlay the 27 TCD countries — tile layer handles world geography.
+  // No tile layer — draw all countries from topojson (no rivers, no sub-boundaries).
   // For small islands, keep only the last (higher-res 50m) occurrence.
   const SMALL_ISO = new Set(['028', '212', '659', '662', '585']);
   const seenSmall = new Set();
   const mapFeatures = [];
   for (let i = cachedGeoData.allFeatures.length - 1; i >= 0; i--) {
     const f = cachedGeoData.allFeatures[i];
-    if (!f._tcd) continue;
     const iso = String(f.id).padStart(3, '0');
     if (SMALL_ISO.has(iso)) {
       if (seenSmall.has(iso)) continue;
@@ -1701,17 +1689,18 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
 }
 
 function mapPolyStyle(feature) {
+  // Non-TCD or filtered-out countries: solid land color (no tile layer underneath)
   if (!feature._tcd || !matchesFilters(feature._tcd)) return {
-    fillColor: darkMode ? '#30363d' : '#b0c4ce',
-    fillOpacity: 0.25,
-    color: darkMode ? 'rgba(60,80,100,0.4)' : 'rgba(120,150,170,0.4)',
-    weight: 1
+    fillColor: darkMode ? '#162030' : '#c0d4e0',
+    fillOpacity: 1,
+    color: darkMode ? '#0d1828' : '#9db8c8',
+    weight: 0.5
   };
   const confirmed = feature._tcd.transfersOccurred;
   const selected  = feature._tcd.name === selectedName;
   return {
     fillColor: confirmed ? '#f85149' : '#e3b341',
-    fillOpacity: selected ? 0.85 : 0.65,
+    fillOpacity: selected ? 0.9 : 0.75,
     color: confirmed ? '#ff6b60' : '#f0c840',
     weight: selected ? 2.5 : 1.5
   };
@@ -2018,18 +2007,6 @@ function updateGlobeTheme() {
   if (globe) {
     globe.backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)');
     globe.polygonLabel(polygonLabelFn);
-  }
-  if (leafletMap && window._mapTileLayer) {
-    leafletMap.removeLayer(window._mapTileLayer);
-    const tileUrl = darkMode
-      ? 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-    window._mapTileLayer = L.tileLayer(tileUrl, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(leafletMap);
-    window._mapTileLayer.bringToBack();
   }
   refreshPolygons();
 }
