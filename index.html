@@ -722,7 +722,7 @@
 <div id="header">
   <div id="header-title">
     <h1>Third Country Deportations Tracker</h1>
-    <p>Forced transfers under U.S. bilateral agreements &mdash; as of April 2026</p>
+    <p>Forced transfers under U.S. bilateral agreements &mdash; as of June 2026</p>
     <div id="region-row">
       <span class="region-link" id="rl-americas" onclick="setRegionFilter('Americas')">Americas <strong id="rb-americas">14</strong></span>
       <span class="region-sep">&middot;</span>
@@ -734,7 +734,7 @@
     </div>
   </div>
   <div id="stats-bar">
-    <div class="stat"><div class="stat-value blue" id="stat-total">27</div><div class="stat-label" id="stat-total-label">Countries</div></div>
+    <div class="stat"><div class="stat-value blue" id="stat-total">35</div><div class="stat-label" id="stat-total-label">Countries</div></div>
     <div class="stat"><div class="stat-value red" id="stat-confirmed">0</div><div class="stat-label">With Transfers</div></div>
     <div class="stat"><div class="stat-value orange" id="stat-pending">0</div><div class="stat-label">Agreement Only</div></div>
     <div class="stat"><div class="stat-value green" id="stat-funding">$54M+</div><div class="stat-label">U.S. Funding</div></div>
@@ -747,7 +747,7 @@
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
-  <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (Apr 3, 2026)</div>
+  <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
 
 <!-- DOCUMENTS PANEL -->
@@ -845,7 +845,7 @@
   <div class="docs-grid">
     <a class="doc-card-link" href="https://humanrightsfirst.org/events/banished-by-bargain-third-country-deportation-watch/" target="_blank" rel="noopener">
       <div class="doc-card yellow">
-        <div class="doc-card-date yellow">Updated Apr 3, 2026 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-date yellow">Updated May 29, 2026 <span class="doc-card-arrow">↗</span></div>
         <div class="doc-card-title">Banished by Bargain: Third Country Deportation Watch</div>
         <div class="doc-card-source">Human Rights First &amp; Refugees International — primary source data for this tracker</div>
       </div>
@@ -997,35 +997,90 @@ const COUNTRIES = [
     harms: "At least 27 Nepali-speaking Bhutanese refugees were deported via India, many with U.S. refugee protections — born in refugee camps in Nepal, they have no ties to Bhutan. Bhutan refused to recognize them as nationals; Nepal refused to grant citizenship, leaving many stateless. One man who chose deportation to Bhutan had his documents confiscated and was forcibly expelled into Nepal within 24 hours. Others are hiding in India without immigration status, or have returned to destroyed refugee camp huts where humanitarian aid has long since departed. In June 2025, Nepal issued deportation orders to four individuals. At least one person has died by suicide. Others have gone missing."
   },
   {
+    name: "Burundi", flag: "🇧🇮",
+    lat: -3.3731, lng: 29.9189,
+    agreementType: "Third Country Removal Agreement",
+    format: "Diplomatic Notes", agreementDate: "February 12, 2026",
+    transfersOccurred: false, transferDates: "None",
+    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    funding: "No direct financial compensation reported",
+    usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    harms: "No known transfers. Burundi entered the agreement after previously resisting one without U.S. funding to the International Organization for Migration (IOM) in the amount of $8 million; Burundi has said it does not intend to receive individuals who have committed violent crimes."
+  },
+  {
+    name: "Cabo Verde", flag: "🇨🇻",
+    lat: 16.5388, lng: -23.0418,
+    agreementType: "Asylum Cooperative Agreement / Safe Third Country Agreement",
+    format: "Formal Written Agreement", agreementDate: "November 19, 2025",
+    transfersOccurred: false, transferDates: "None",
+    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    funding: "No direct financial compensation reported",
+    usLegal: "UT v. Bondi", intlLegal: "No legal challenges reported",
+    harms: "No known transfers"
+  },
+  {
     name: "Cameroon", flag: "🇨🇲",
     lat: 7.3697, lng: 12.3547,
     agreementType: "Third Country Removal Agreement",
     format: "Unknown", agreementDate: "Unknown",
-    transfersOccurred: true, transferDates: "January 15, 2026; February 16, 2026",
+    transfersOccurred: true, transferDates: "January 15, 2026; February 16, 2026; April 29, 2026; May 27, 2026",
     cap: "No cap reported", mode: "ICE flight", detained: "Information withheld",
     funding: "No direct financial compensation reported",
     usLegal: "Casa v. Noem, DVD v. DHS", intlLegal: "No legal challenges reported",
-    harms: "People have been arbitrarily detained without a lawful basis in Cameroon, and in several cases sent back to harm in their home countries."
+    harms: "At least 36 people have been transferred to Cameroon across four flights. People have been arbitrarily detained without a lawful basis there, and in several cases sent back to harm in their home countries. Among those forcibly transferred are at least four LGBTQ individuals with U.S. withholding-of-removal protections, as well as people fleeing political persecution. Some were given deportation notices and, when they expressed fear, were denied a promised fear interview; others were not told they were being sent to Cameroon until they were already in the air. One man was told in the airport hangar that he would be deported to Ghana, but officials changed the destination to Cameroon at the last minute — when he expressed fear, officers placed him in a full-body restraint (the WRAP)."
+  },
+  {
+    name: "Central African Republic", flag: "🇨🇫",
+    lat: 6.6111, lng: 20.9394,
+    agreementType: "Third Country Removal Agreement",
+    format: "Classified/Secret", agreementDate: "Unknown",
+    transfersOccurred: false, transferDates: "None",
+    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    funding: "No direct financial compensation reported",
+    usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    harms: "No known transfers. The New York Times reported that the Central African Republic agreed to accept transferred migrants following an $85 million U.S. infusion to an international migration organization."
   },
   {
     name: "Costa Rica", flag: "🇨🇷",
     lat: 9.7489, lng: -83.7534,
-    agreementType: "Temporary transfer before onward return to home country",
-    format: "Formal Written Agreement", agreementDate: "April 3, 2025",
-    transfersOccurred: true, transferDates: "February 20, 2025; February 25, 2025",
-    cap: "No cap reported", mode: "ICE flight", detained: "Detained",
-    funding: "$7.85 million paid to Costa Rica under the April 2025 agreement", fundingUSD: 7.85,
+    agreementType: "Hybrid/Multitype Transfer Arrangement",
+    format: "Formal Written Agreement", agreementDate: "Two agreements: April 3, 2025 and March 23, 2026",
+    transfersOccurred: true, transferDates: "February 20, 2025; February 25, 2025; April 11, 17 & 24, 2026; May 15, 21 & 28, 2026; June 4 & 11, 2026",
+    cap: "25 third-country nationals per week (under the 2026 agreement)", mode: "ICE flight", detained: "Detained; hotel used as detention center; screened",
+    funding: "$9.5 million paid to Costa Rica under the April 2025 agreement; the U.S. also financed the February 2025 transfers", fundingUSD: 9.5,
     usLegal: "RAICES v. Noem", intlLegal: "Constitutional Court case; UN Committee on the Rights of the Child comments",
-    harms: "People were arbitrarily detained without a legal basis in a remote facility. They were not provided adequate language, medical, and psychological services — facing extreme heat, mosquitoes, and limited access to water and food. A Costa Rican judge wrote: 'In the 54 years of my career, I had never seen a case that was so damaging to people's fundamental rights, especially dignity and freedom.'"
+    harms: "At least 349 people have been transferred to Costa Rica. With respect to the 2025 transfers, people were arbitrarily detained without a legal basis in a remote facility. They were not provided adequate language, medical, and psychological services — facing extreme heat, mosquitoes, and limited access to water and food. Facing coercive and inhumane conditions, some returned to their home countries — raising chain refoulement concerns — while others remained arbitrarily detained for months. A Costa Rican judge wrote: 'In the 54 years of my career, I had never seen a case that was so damaging to people's fundamental rights, especially dignity and freedom.' In April and May 2026, 124 people were transferred under the new 2026 agreement; transferred individuals can repatriate to their home countries, which some fear to do, or seek asylum or temporary humanitarian status in Costa Rica."
+  },
+  {
+    name: "Democratic Republic of Congo", flag: "🇨🇩",
+    lat: -4.0383, lng: 21.7587,
+    agreementType: "Third Country Removal Agreement",
+    format: "Diplomatic Notes", agreementDate: "December 24, 2025",
+    transfersOccurred: true, transferDates: "April 17, 2026",
+    cap: "Reportedly 50–100 people per month", mode: "ICE flight", detained: "Hotel used as detention center",
+    funding: "No direct financial compensation reported",
+    usLegal: "DVD v. DHS", intlLegal: "No legal challenges reported",
+    harms: "Fifteen individuals, primarily from Peru, Colombia, and Ecuador, were transferred to the DRC despite having been granted protection by U.S. immigration judges based on risk of persecution or torture in their home countries. Upon arrival they faced serious harms, including separation from family members in the U.S., prolonged prior detention, and re-exposure to conditions of instability and insecurity — some had already survived torture in their home countries."
   },
   {
     name: "Dominica", flag: "🇩🇲",
     lat: 15.4150, lng: -61.3710,
     agreementType: "Third Country Removal Agreement",
-    format: "Unknown", agreementDate: "December 17, 2025",
+    format: "Diplomatic Notes", agreementDate: "December 17, 2025",
     transfersOccurred: false, transferDates: "None",
-    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    cap: "Up to seven third-country nationals per quarter, or 28 people per year", mode: "Not applicable", detained: "Not applicable",
     funding: "No direct financial compensation reported",
+    usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    harms: "No known transfers"
+  },
+  {
+    name: "Dominican Republic", flag: "🇩🇴",
+    lat: 18.7357, lng: -70.1627,
+    agreementType: "Temporary transfer before onward return to home country",
+    format: "Memorandum of Understanding", agreementDate: "May 12, 2026",
+    transfersOccurred: false, transferDates: "None",
+    cap: "A 'limited' number of people — unclear what that means", mode: "Not applicable", detained: "Not applicable",
+    funding: "Unclear — the Dominican government has stated returns will have 'financial and operational support from the U.S. government to ensure adequate conditions during temporary stays and facilitate orderly return to countries of origin'",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
     harms: "No known transfers"
   },
@@ -1033,7 +1088,7 @@ const COUNTRIES = [
     name: "Ecuador", flag: "🇪🇨",
     lat: -1.8312, lng: -78.1834,
     agreementType: "Asylum Cooperative Agreement / Safe Third Country Agreement",
-    format: "Diplomatic Notes", agreementDate: "September 1, 2025",
+    format: "Diplomatic Notes", agreementDate: "July 16, 2025; addended July 23, 2026",
     transfersOccurred: true, transferDates: "Monthly since January 2026",
     cap: "Ecuador announced ~300/year; U.S. says 'no specific quota'", mode: "Not applicable", detained: "Not applicable",
     funding: "No direct financial compensation reported",
@@ -1045,11 +1100,11 @@ const COUNTRIES = [
     lat: 1.6508, lng: 10.2679,
     agreementType: "Third Country Removal Agreement",
     format: "Unknown", agreementDate: "Unknown",
-    transfersOccurred: true, transferDates: "November 24, 2025; January 22, 2026",
+    transfersOccurred: true, transferDates: "November 24, 2025; January 22, 2026; April 29, 2026",
     cap: "No cap reported", mode: "ICE flight", detained: "Not applicable",
     funding: "$7.5 million", fundingUSD: 7.5,
     usLegal: "DVD v. DHS", intlLegal: "No legal challenges reported",
-    harms: "People have been arbitrarily detained upon arrival at a hotel and report being pressured — through detention conditions and direct government pressure — to return to their home countries. The $7.5 million payment to Equatorial Guinea was drawn from the U.S. Department of State's 'Migration and Refugee Assistance' account — funds normally reserved for humanitarian aid. In November 2025, Senator Jeanne Shaheen wrote to Secretary of State Rubio demanding an explanation for this highly unusual transfer. The November 2025 deportation flight tracked by Human Rights First departed from Alexandria, Louisiana, a known ICE deportation hub."
+    harms: "At least 32 people have been transferred to Equatorial Guinea across three flights. People have been arbitrarily detained upon arrival at a hotel and report being pressured — through detention conditions and direct government pressure — to return to their home countries. The $7.5 million payment to Equatorial Guinea was drawn from the U.S. Department of State's 'Migration and Refugee Assistance' account — funds normally reserved for humanitarian aid. In November 2025, Senator Jeanne Shaheen wrote to Secretary of State Rubio demanding an explanation for this highly unusual transfer. The November 2025 deportation flight tracked by Human Rights First departed from Alexandria, Louisiana, a known ICE deportation hub."
   },
   {
     name: "El Salvador", flag: "🇸🇻",
@@ -1064,7 +1119,7 @@ const COUNTRIES = [
     intlResponses: [
       { date: "May 13, 2025", body: "UN Human Rights High Commissioner", statement: "Voiced serious concern over deportations of Venezuelans and Salvadorans to El Salvador’s CECOT prison, stating the situation “raises serious concerns regarding a wide array of rights that are fundamental to both U.S. and international law.”" }
     ],
-    harms: "People were imprisoned in CECOT, El Salvador's notorious high-security prison. While incarcerated, they were subjected to indefinite and incommunicado detention amounting to enforced disappearances, torture, sexual assault, and severe beatings. After months, Venezuelan individuals were expelled onward to Venezuela — chain refoulement. Dozens of Salvadorans also transferred remain detained incommunicado, their fates unknown."
+    harms: "At least 252 people were transferred to El Salvador across three flights. They were imprisoned in CECOT, El Salvador's notorious high-security prison. While incarcerated, they were subjected to indefinite and incommunicado detention amounting to enforced disappearances, torture, sexual assault, and severe beatings. After months, Venezuelan individuals were expelled onward to Venezuela — chain refoulement. Dozens of Salvadorans also transferred remain detained incommunicado, their fates unknown."
   },
   {
     name: "Eswatini", flag: "🇸🇿",
@@ -1078,7 +1133,7 @@ const COUNTRIES = [
     intlResponses: [
       { date: "Jul 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Expressed concern about U.S. deportation agreements with Eswatini, calling the practice a 'delegation of detention' and raising violations of the African Charter on Human and Peoples' Rights and the African Guiding Principles on the Human Rights of All Migrants, Refugees and Asylum Seekers." }
     ],
-    harms: "Over 19 people were incarcerated across two flights at Matsapha Correctional Centre — a maximum-security prison — without charges, due process, or access to counsel. Roberto Mosquera del Peral (Cuba), from the July 2025 flight, went on a 30-day hunger strike in October to protest conditions; the Eswatini government falsely described him as 'fasting and praying.' Orville Etoria (Jamaica) was eventually repatriated in September with IOM support. A U.S. attorney representing five of the men said: 'I cannot call them. I cannot email them. I cannot communicate through local counsel because the Eswatini government blocks all attorney access.' An Eswatini lawyer was denied access to clients for weeks even after filing official court representation papers. U.S. State Department reports document 'numerous credible reports' of torture and cruel treatment in Eswatini's detention facilities. Four men sued the Eswatini government for due process violations, but proceedings stalled when a court judge failed to appear without explanation."
+    harms: "19 people were incarcerated across two flights at Matsapha Correctional Centre — a maximum-security prison — without charges, due process, or access to counsel. Roberto Mosquera del Peral (Cuba), from the July 2025 flight, went on a 30-day hunger strike in October to protest conditions; the Eswatini government falsely described him as 'fasting and praying.' Orville Etoria (Jamaica) was eventually repatriated in September with IOM support. A U.S. attorney representing five of the men said: 'I cannot call them. I cannot email them. I cannot communicate through local counsel because the Eswatini government blocks all attorney access.' An Eswatini lawyer was denied access to clients for weeks even after filing official court representation papers. U.S. State Department reports document 'numerous credible reports' of torture and cruel treatment in Eswatini's detention facilities. Four men sued the Eswatini government for due process violations, but proceedings stalled when a court judge failed to appear without explanation."
   },
   {
     name: "Ghana", flag: "🇬🇭",
@@ -1089,18 +1144,18 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "ICE flight, Military flight", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "DVD v. DHS, D.A. v. Noem", intlLegal: "Democracy Hub v. Government of Ghana; Oliver Barker-Vormawor et al. v. Government of Ghana",
-    harms: "Since September 2025, at least 42 individuals have been deported. Many were transported on military cargo planes, shackled at hands, waist, and ankles. At least two individuals held withholding of removal orders and three held CAT protection — meaning the U.S. had promised not to deport them to their countries of origin — yet Ghana sent them onward within days. Eight individuals were left in Togo without documents. A bisexual Gambian man granted U.S. protection due to his sexuality was sent to Gambia, where same-sex relations are criminalized. A Sierra Leonean nurse who fled war and held U.S. withholding of removal was dragged across the floor when she resisted being bused to Sierra Leone, sustaining injuries. At least eleven men were held at Dema camp, a remote military training facility outside Accra with extreme heat, mosquitoes, and unsanitary water. One man was detained at the airport for five days with no phone access, shower, or change of clothes. Enforced disappearances were documented."
+    harms: "Since September 2025, at least 60 individuals have been deported across the four confirmed flights, with additional flights stopping in Ghana in December, January, February, and March that may have carried further third-country nationals. Many were transported on military cargo planes, shackled at hands, waist, and ankles. At least two individuals held withholding of removal orders and three held CAT protection — meaning the U.S. had promised not to deport them to their countries of origin — yet Ghana sent them onward within days. Eight individuals were left in Togo without documents. A bisexual Gambian man granted U.S. protection due to his sexuality was sent to Gambia, where same-sex relations are criminalized. A Sierra Leonean nurse who fled war and held U.S. withholding of removal was dragged across the floor when she resisted being bused to Sierra Leone, sustaining injuries. At least eleven men were held at Dema camp, a remote military training facility outside Accra with extreme heat, mosquitoes, and unsanitary water. One man was detained at the airport for five days with no phone access, shower, or change of clothes. Enforced disappearances were documented."
   },
   {
     name: "Guatemala", flag: "🇬🇹",
     lat: 15.7835, lng: -90.2308,
     agreementType: "Hybrid/Multitype Transfer Arrangement",
     format: "Diplomatic Notes", agreementDate: "June 27, 2025",
-    transfersOccurred: true, transferDates: "October 10, 2025",
+    transfersOccurred: true, transferDates: "October 10, 2025; ongoing",
     cap: "No cap reported", mode: "ICE flight", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "No legal challenges reported",
-    harms: "Hondurans and Salvadorans transferred to Guatemala since October 2025 were subsequently sent to Honduras and El Salvador — raising chain refoulement concerns. These transfers appear to have occurred outside the parameters of the Asylum Cooperative Agreement."
+    harms: "At least 142 people have been transferred to Guatemala since October 2025. Hondurans and Salvadorans transferred to Guatemala were subsequently sent to Honduras and El Salvador — raising chain refoulement concerns. These transfers appear to have occurred outside the parameters of the Asylum Cooperative Agreement."
   },
   {
     name: "Guyana", flag: "🇬🇾",
@@ -1122,7 +1177,7 @@ const COUNTRIES = [
     cap: "10 third country nationals per month, up to 240 over two years", mode: "ICE flight", detained: "No known detention",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "No legal challenges reported",
-    harms: "Guatemalans transferred to Honduras since October have been bussed to Guatemala without an opportunity to seek asylum — chain refoulement. People from Colombia, Ecuador, Guatemala, Mexico, and Nicaragua were transferred under the ACA in October and November."
+    harms: "At least 161 people have been transferred to Honduras since October 2025. Guatemalans transferred to Honduras have been bussed to Guatemala without an opportunity to seek asylum — chain refoulement. People from Colombia, Ecuador, Guatemala, Mexico, and Nicaragua were transferred under the ACA."
   },
   {
     name: "Kosovo", flag: "🇽🇰",
@@ -1133,18 +1188,18 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Commercial Flight", detained: "Not applicable",
     funding: "No direct financial compensation reported",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "No known harms reported"
+    harms: "Two individuals were transferred to Kosovo via commercial flight; no harms have been documented"
   },
   {
     name: "Liberia", flag: "🇱🇷",
     lat: 6.4281, lng: -9.4295,
     agreementType: "Asylum Cooperative Agreement / Safe Third Country Agreement",
     format: "Diplomatic Notes", agreementDate: "September 10, 2025",
-    transfersOccurred: false, transferDates: "None",
+    transfersOccurred: false, transferDates: "None confirmed — a potential, unconfirmed transfer was tracked January 22, 2026",
     cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
     funding: "No direct financial compensation reported",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "No known transfers. Liberia agreed to accept the transfer of Kilmar Abrego on October 24, 2025. Agreement may extend beyond Mr. Abrego."
+    harms: "No confirmed transfers. Liberia agreed to accept the transfer of Kilmar Abrego on October 24, 2025; the agreement may extend beyond Mr. Abrego. ICE Flight Monitor tracked a deportation flight to Liberia on January 22, 2026 that may have carried third-country nationals, though this remains unconfirmed."
   },
   {
     name: "Libya", flag: "🇱🇾",
@@ -1166,7 +1221,18 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Bus", detained: "Detained",
     funding: "No direct financial compensation reported",
     usLegal: "DVD v. DHS", intlLegal: "Supreme Court comment, Amparo en Revisión 444/2021",
-    harms: "Many people transferred to Mexico suffer repeated detention, exploitation, and abuse by criminal groups and Mexican authorities. They face chain refoulement — Mexican authorities bussing south and deporting many, particularly Central Americans. A gay Guatemalan man who had testified in U.S. immigration court that he had been raped there was subsequently deported by Mexico to Guatemala."
+    harms: "More than 17,375 people have been transferred to Mexico by bus. Many suffer repeated detention, exploitation, and abuse by criminal groups and Mexican authorities. They face chain refoulement — Mexican authorities bussing south and deporting many, particularly Central Americans. A gay Guatemalan man who had testified in U.S. immigration court that he had been raped there was subsequently deported by Mexico to Guatemala."
+  },
+  {
+    name: "Moldova", flag: "🇲🇩",
+    lat: 47.4116, lng: 28.3699,
+    agreementType: "Not enough information",
+    format: "Unknown", agreementDate: "Unknown",
+    transfersOccurred: true, transferDates: "March 10, 2026; April 30, 2026",
+    cap: "No cap reported", mode: "ICE flight", detained: "No known detention",
+    funding: "No direct financial compensation reported",
+    usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    harms: "At least 16 people have been transferred to Moldova across two flights; no harms have been documented"
   },
   {
     name: "Palau", flag: "🇵🇼",
@@ -1188,29 +1254,29 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Military flight", detained: "Detained",
     funding: "At least $14 million for deportation flights; U.S. also paid for migrants' stay", fundingUSD: 14, fundingExtra: true,
     usLegal: "RAICES v. Noem", intlLegal: "GSLC et al. v. Panama; Petition to IACHR",
-    harms: "People were detained without a legal basis — first in a hotel incommunicado, later in a remote jungle camp with terrible conditions: extreme heat, non-potable water, rotten food, unsanitary conditions, and denial of phone access. 170 people returned to their home countries within a week — chain refoulement concerns — others were detained for nearly a month."
+    harms: "299 people were transferred to Panama and detained without a legal basis — first in a hotel incommunicado, later in a remote jungle camp with terrible conditions: extreme heat, non-potable water, rotten food, unsanitary conditions, and denial of phone access. 170 people returned to their home countries within a week — chain refoulement concerns — others were detained for nearly a month."
   },
   {
     name: "Paraguay", flag: "🇵🇾",
     lat: -23.4425, lng: -58.4438,
     agreementType: "Asylum Cooperative Agreement / Safe Third Country Agreement",
-    format: "Memorandum of Understanding", agreementDate: "August 14, 2025",
-    transfersOccurred: false, transferDates: "None",
-    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    format: "Memorandum of Understanding", agreementDate: "August 14, 2025; addended February 2026",
+    transfersOccurred: true, transferDates: "April 22, 2026; May 21, 2026",
+    cap: "25 people per month", mode: "ICE flight", detained: "Hotel used as detention center",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "No legal challenges reported",
-    harms: "No known transfers"
+    harms: "At least 26 people have been transferred to Paraguay under the expanded 2026 agreement. Reports state that individuals transferred remain in the country for 72 hours before being returned to their countries of origin, facilitated by the IOM with U.S. funding. In February 2026, the agreement was expanded to include not only asylum seekers but also third-country nationals 'not received by the United States.'"
   },
   {
     name: "Poland", flag: "🇵🇱",
     lat: 51.9194, lng: 19.1451,
     agreementType: "Temporary transfer before onward return to home country",
     format: "Unwritten/Informal", agreementDate: "Unknown",
-    transfersOccurred: true, transferDates: "November 19, 2025; March 17, 2026",
+    transfersOccurred: true, transferDates: "November 19, 2025; March 17, 2026; April 30, 2026",
     cap: "No cap reported", mode: "ICE flight", detained: "No known detention",
     funding: "No direct financial compensation reported",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "Ukrainian nationals were returned to Ukraine via Poland during an ongoing war, after U.S. authorities deported them to Poland. There has been no transparency about their legal status or any protection claims they may have raised — chain refoulement concerns."
+    harms: "At least 50 people have been transferred to Poland. Ukrainian nationals were returned to Ukraine via Poland during an ongoing war, after U.S. authorities deported them to Poland. There has been no transparency about their legal status or any protection claims they may have raised — chain refoulement concerns."
   },
   {
     name: "Rwanda", flag: "🇷🇼",
@@ -1227,10 +1293,21 @@ const COUNTRIES = [
     harms: "Seven individuals of unknown nationalities arrived in mid-August 2025. The Rwandan government stated that three would return to their home countries and four expressed a wish to remain in Rwanda, where they were promised accommodation, workforce training, and healthcare. IOM and Rwandan social services have visited the individuals. Significant information gaps remain about their well-being and whether protection claims have been assessed. Context: Rwanda's reference as an 'established' migration partner echoes the UK-Rwanda Asylum Partnership — scrapped in 2024 after the UK Supreme Court declared it unlawful due to the risk of refoulement, before any asylum seekers were ever sent."
   },
   {
+    name: "Sierra Leone", flag: "🇸🇱",
+    lat: 8.4606, lng: -11.7799,
+    agreementType: "Third Country Removal Agreement",
+    format: "Diplomatic Notes", agreementDate: "January 26, 2026",
+    transfersOccurred: true, transferDates: "May 19, 2026; June 18, 2026",
+    cap: "300 third-country nationals annually, with no more than 25 arriving each month", mode: "ICE flight", detained: "Hotel used as detention center",
+    funding: "$1.5 million", fundingUSD: 1.5,
+    usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
+    harms: "Approximately a dozen people have been transferred to Sierra Leone across two flights; detailed harms have not yet been documented."
+  },
+  {
     name: "South Sudan", flag: "🇸🇸",
     lat: 6.8770, lng: 31.3070,
     agreementType: "Incarceration in third country",
-    format: "Unwritten/Informal", agreementDate: "July 30, 2025",
+    format: "Unwritten/Informal", agreementDate: "May 10, 2025; addended May 12, 2026",
     transfersOccurred: true, transferDates: "July 4, 2025",
     cap: "No cap reported", mode: "Military flight", detained: "Detained",
     funding: "No direct financial compensation reported",
@@ -1245,11 +1322,11 @@ const COUNTRIES = [
     lat: 17.3578, lng: -62.7830,
     agreementType: "Third Country Removal Agreement",
     format: "Memorandum of Understanding", agreementDate: "December 12, 2026",
-    transfersOccurred: false, transferDates: "None",
-    cap: "No cap reported", mode: "Not applicable", detained: "Not applicable",
+    transfersOccurred: true, transferDates: "May 19, 2026",
+    cap: "No cap reported", mode: "ICE Flight", detained: "Information withheld",
     funding: "U.S. will pay for transportation, housing, and sustenance",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "No known transfers"
+    harms: "Three people — nationals of Jamaica and Belize — were transferred to St. Kitts and Nevis on May 19, 2026."
   },
   {
     name: "St. Lucia", flag: "🇱🇨",
@@ -1267,14 +1344,14 @@ const COUNTRIES = [
     lat: 1.3733, lng: 32.2903,
     agreementType: "Asylum Cooperative Agreement / Safe Third Country Agreement",
     format: "Formal Written Agreement", agreementDate: "July 29, 2025",
-    transfersOccurred: true, transferDates: "April 1, 2026",
+    transfersOccurred: true, transferDates: "April 2, 2026",
     cap: "No cap reported", mode: "ICE flight", detained: "Information withheld",
     funding: "No direct financial compensation reported",
     usLegal: "UT v. Bondi", intlLegal: "Yes (details limited)",
     intlResponses: [
       { date: "Aug 31, 2025", body: "African Commission on Human and Peoples' Rights", statement: "Urged Uganda to ensure transparency of the agreement and guarantee human rights protections. Expressed concern that the agreement may violate the African Charter on Human and Peoples' Rights and that migrants are being sent to a 'disposal zone' for arbitrary expulsions." }
     ],
-    harms: "Eight third country nationals were transferred from the U.S. to Uganda on April 1, 2026. The cooperation agreement states Uganda will not send anyone to their home country until a final decision on international protection claims is reached — however, enforcement is unclear. Uganda hosts 1.8 million refugees, the largest refugee population in Africa, and its inclusive policies are already strained by aid cuts and donor fatigue. In November 2025, Uganda's Minister of Refugees announced the government would no longer grant refugee status to nationals of countries not at war — specifically citing Eritrea, Ethiopia, and Somalia — raising serious questions about the protection environment for deported individuals. The Netherlands also signed a separate Letter of Intent with Uganda in September 2025 to use the country as its own deportation return hub."
+    harms: "Eight third country nationals were transferred from the U.S. to Uganda on April 2, 2026. The cooperation agreement states Uganda will not send anyone to their home country until a final decision on international protection claims is reached — however, enforcement is unclear. Uganda hosts 1.8 million refugees, the largest refugee population in Africa, and its inclusive policies are already strained by aid cuts and donor fatigue. In November 2025, Uganda's Minister of Refugees announced the government would no longer grant refugee status to nationals of countries not at war — specifically citing Eritrea, Ethiopia, and Somalia — raising serious questions about the protection environment for deported individuals. The Netherlands also signed a separate Letter of Intent with Uganda in September 2025 to use the country as its own deportation return hub."
   },
   {
     name: "Uzbekistan", flag: "🇺🇿",
@@ -1285,7 +1362,7 @@ const COUNTRIES = [
     cap: "No cap reported", mode: "Third-country plane, ICE flight", detained: "No known detention",
     funding: "No direct financial compensation reported",
     usLegal: "No legal challenges reported", intlLegal: "No legal challenges reported",
-    harms: "Uzbek media confirmed that Kazakh and Kyrgyz nationals were returned to their respective home countries — raising chain refoulement concerns."
+    harms: "At least 137 people have been transferred to Uzbekistan across two flights. Uzbek media confirmed that Kazakh and Kyrgyz nationals were returned to their respective home countries — raising chain refoulement concerns."
   }
 ];
 
@@ -1297,9 +1374,14 @@ const ISO_TO_NAME = {
   '028': 'Antigua and Barbuda',
   '064': 'Bhutan',
   '084': 'Belize',
+  '108': 'Burundi',
+  '132': 'Cabo Verde',
   '120': 'Cameroon',
+  '140': 'Central African Republic',
   '188': 'Costa Rica',
+  '180': 'Democratic Republic of Congo',
   '212': 'Dominica',
+  '214': 'Dominican Republic',
   '218': 'Ecuador',
   '226': 'Equatorial Guinea',
   '222': 'El Salvador',
@@ -1312,11 +1394,13 @@ const ISO_TO_NAME = {
   '430': 'Liberia',
   '434': 'Libya',
   '484': 'Mexico',
+  '498': 'Moldova',
   '585': 'Palau',
   '591': 'Panama',
   '600': 'Paraguay',
   '616': 'Poland',
   '646': 'Rwanda',
+  '694': 'Sierra Leone',
   '728': 'South Sudan',
   '659': 'St. Kitts and Nevis',
   '662': 'St. Lucia',
@@ -1329,12 +1413,13 @@ COUNTRIES.forEach(c => DATA_BY_NAME[c.name] = c);
 
 // ── REGION LOOKUP ──
 const REGION_GROUPS = {
-  'Americas':      ['Antigua and Barbuda','Belize','Costa Rica','Dominica','Ecuador',
+  'Americas':      ['Antigua and Barbuda','Belize','Costa Rica','Dominica','Dominican Republic','Ecuador',
                     'El Salvador','Guatemala','Guyana','Honduras','Mexico','Panama',
                     'Paraguay','St. Kitts and Nevis','St. Lucia'],
-  'Africa':        ['Cameroon','Equatorial Guinea','Eswatini','Ghana','Liberia',
-                    'Libya','Rwanda','South Sudan','Uganda'],
-  'Europe':        ['Kosovo','Poland'],
+  'Africa':        ['Burundi','Cabo Verde','Cameroon','Central African Republic','Democratic Republic of Congo',
+                    'Equatorial Guinea','Eswatini','Ghana','Liberia',
+                    'Libya','Rwanda','Sierra Leone','South Sudan','Uganda'],
+  'Europe':        ['Kosovo','Moldova','Poland'],
   'Asia & Pacific':['Bhutan','Palau','Uzbekistan']
 };
 const NAME_TO_REGION = {};
@@ -1490,7 +1575,7 @@ function refreshPolygons() {
 // ──────────────────────────────────────────────
 async function fetchGeoData() {
   if (cachedGeoData) return cachedGeoData;
-  const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585']);
+  const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
   const [topo110, topo50] = await Promise.all([
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
     fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json())
@@ -1663,7 +1748,7 @@ function initMap() {
 
   // No tile layer — draw all countries from topojson (no rivers, no sub-boundaries).
   // For small islands, keep only the last (higher-res 50m) occurrence.
-  const SMALL_ISO = new Set(['028', '212', '659', '662', '585']);
+  const SMALL_ISO = new Set(['028', '212', '659', '662', '585', '132']);
   const seenSmall = new Set();
   const mapFeatures = [];
   for (let i = cachedGeoData.allFeatures.length - 1; i >= 0; i--) {
