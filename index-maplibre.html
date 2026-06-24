@@ -150,6 +150,18 @@
   #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
   #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; }
 
+  /* ── VIEW TOGGLE (Map/Globe — copied from index.html) ── */
+  #view-toggle { display: flex; border: 1px solid rgba(88,166,255,0.25); border-radius: 6px; overflow: hidden; }
+  .view-btn {
+    background: none; border: none; color: #8b949e;
+    font-size: 12px; font-weight: 600; padding: 5px 12px;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .view-btn:hover { background: rgba(88,166,255,0.1); color: #c9d1d9; }
+  .view-btn.active { background: rgba(88,166,255,0.18); color: #58a6ff; }
+  .view-btn:not(:last-child) { border-right: 1px solid rgba(88,166,255,0.25); }
+
   /* ── COUNTRY LIST (copied from index.html) ── */
   #country-list {
     position: fixed;
@@ -295,6 +307,10 @@
     <div class="stat"><div class="stat-value green" id="stat-funding">&mdash;</div><div class="stat-label">U.S. Funding</div></div>
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
+  <div id="view-toggle">
+    <button class="view-btn active" id="view-map-btn" onclick="switchView('map')">Map</button>
+    <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
+  </div>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
@@ -1039,6 +1055,39 @@ function toggleCountryList() {
 
 updateStats();
 buildCountryList();
+
+// ──────────────────────────────────────────────
+// PHASE 6: globe projection toggle — replaces Globe.gl + the original's
+// dual-renderer setup (two full map instances shown/hidden) entirely.
+// One MapLibre map, two projections: this is the single biggest
+// simplification in the whole migration.
+//
+// `map` is declared just below (Phase 1 section) but not yet *evaluated*
+// at the point this function is defined -- fine, since switchView() is
+// only ever invoked later, from a button click, by which point the
+// `const map = new maplibregl.Map(...)` line has long since run.
+//
+// The flat map never tilts/rotates in the original (Leaflet has no
+// pitch/bearing concept); globe mode is the only place 3D orbiting makes
+// sense, so maxPitch is toggled alongside the projection rather than
+// left open all the time.
+// ──────────────────────────────────────────────
+let viewMode = 'map';
+function switchView(mode) {
+  if (mode === viewMode) return;
+  viewMode = mode;
+  document.getElementById('view-globe-btn').classList.toggle('active', mode === 'globe');
+  document.getElementById('view-map-btn').classList.toggle('active', mode === 'map');
+
+  if (mode === 'globe') {
+    map.setProjection({ type: 'globe' });
+    map.setMaxPitch(60);
+  } else {
+    map.setProjection({ type: 'mercator' });
+    map.setMaxPitch(0);
+    map.easeTo({ pitch: 0, bearing: 0, duration: 300 });
+  }
+}
 
 // ──────────────────────────────────────────────
 // PHASE 1: bare map + geometry + data join
