@@ -1304,6 +1304,40 @@ function switchView(mode) {
 // the real header's stat-total now shows the live count instead. The
 // match/sanity check itself is unchanged, just console-only now.)
 
+// PARITY FIX 2026-06-24: Phase 8 assumed MapLibre handles antimeridian-
+// crossing polygons natively and skipped porting this -- wrong. The
+// world-atlas topojson stores some features (USA via the Aleutians,
+// Canada, Antarctica) with longitudes that run past +-180 instead of
+// being split at the meridian. With renderWorldCopies:false, MapLibre
+// doesn't wrap those points back into view -- it renders them exactly
+// where they are, which either tears a polygon into a long horizontal
+// line (consecutive ring points 360deg apart) or strands a whole chunk
+// of it off in empty ocean far from the real landmass. Ported verbatim
+// from the original Leaflet site's fixMapGeometry(): walk each ring,
+// nudge each point by +-360 to stay within 180deg of the previous point
+// (closing the tear), then shift the whole ring back into the normal
+// range if that left its average longitude outside it.
+function fixMapGeometry(geom) {
+  function fixRing(ring) {
+    if (!ring.length) return ring;
+    const out = [[...ring[0]]];
+    for (let i = 1; i < ring.length; i++) {
+      let lng = ring[i][0];
+      const prev = out[i - 1][0];
+      while (lng - prev > 180) lng -= 360;
+      while (prev - lng > 180) lng += 360;
+      out.push([lng, ring[i][1]]);
+    }
+    const mean = out.reduce((s, p) => s + p[0], 0) / out.length;
+    if (mean > 180) return out.map(p => [p[0] - 360, p[1]]);
+    if (mean < -180) return out.map(p => [p[0] + 360, p[1]]);
+    return out;
+  }
+  if (geom.type === 'Polygon') return { ...geom, coordinates: geom.coordinates.map(fixRing) };
+  if (geom.type === 'MultiPolygon') return { ...geom, coordinates: geom.coordinates.map(poly => poly.map(fixRing)) };
+  return geom;
+}
+
 const map = new maplibregl.Map({
   container: 'map',
   style: {
@@ -1341,7 +1375,10 @@ map.on('load', async () => {
     const islandFeatures = countries50.features.filter(
       f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
     );
-    const allFeatures = [...mainFeatures, ...islandFeatures];
+    const allFeatures = [...mainFeatures, ...islandFeatures].map(f => ({
+      ...f,
+      geometry: fixMapGeometry(f.geometry),
+    }));
 
     // Join geometry -> COUNTRIES data via ISO numeric code, with a name-based
     // fallback for territories Natural Earth ships with no numeric ISO id
@@ -1377,11 +1414,6 @@ map.on('load', async () => {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: allFeatures },
       promoteId: 'fid',
-      // Larger buffer reduces gaps between this source's internal vector
-      // tiles for big/complex polygons (seen as thin seam lines, e.g.
-      // across India/Bhutan) -- default is 128.
-      buffer: 512,
-      tolerance: 0,
     });
 
     // ── PHASE 2/4: choropleth styling — exact parity with the current
@@ -1437,12 +1469,7 @@ map.on('load', async () => {
           ['boolean', ['feature-state', 'hover'], false], 0.8,
           ['boolean', ['feature-state', 'selected'], false], 0.9,
           /* default */ 0.75
-        ],
-        // Antialiasing blends edge pixels independently per internal vector
-        // tile, which can leave faint seam lines visible where adjacent
-        // tiles meet (large polygons like India/Bhutan split across tiles).
-        // Off trades slightly harder edges for no seams.
-        'fill-antialias': false
+        ]
       }
     });
 
