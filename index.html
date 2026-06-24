@@ -1455,6 +1455,17 @@ map.on('load', async () => {
 
     // ── PHASE 7: transfer arcs (static; see note above on why both
     // projections get arcs even though the live site's flat map doesn't) ──
+    //
+    // DISABLED 2026-06-24: long-distance great-circle paths (e.g. DC to
+    // Bhutan/Uzbekistan, whose shortest path bows up near 80degN; DC to
+    // Eswatini/Paraguay, which crosses the equator) sweep across nearly
+    // the full longitude range while changing very little in screen-Y on
+    // a Mercator projection, so they render as ugly near-horizontal
+    // streaks across the whole map instead of gentle curves. Turned off
+    // via visibility rather than removed -- source/layer/setData wiring
+    // stays intact so this is a one-line flip (`visibility: 'visible'`)
+    // once there's a real fix (e.g. clip/split long arcs, or only show
+    // them on the globe projection where great circles render correctly).
     map.addSource('arcs', { type: 'geojson', data: buildArcsGeoJSON() });
     map.addLayer({
       id: 'transfer-arcs',
@@ -1464,7 +1475,7 @@ map.on('load', async () => {
         'line-color': 'rgba(248,81,73,0.55)',  // matches the original drawMapArcs() color exactly
         'line-width': 1.5
       },
-      layout: { 'line-cap': 'round', 'line-join': 'round' }
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' }
     });
     // No hover/click handlers on this layer -- matches the original's
     // `interactive: false` Leaflet polylines; arcs are purely visual.
