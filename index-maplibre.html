@@ -581,6 +581,20 @@ map.on('load', async () => {
       generateId: true,
     });
 
+    // ── PHASE 2: choropleth styling — exact parity with the current
+    // Leaflet flat-map's mapPolyStyle() (dark theme; light-theme swap
+    // and live filter-dimming are wired in Phase 8 / Phase 4).
+    //
+    // Precedence replicated faithfully from the original (including its
+    // one quirk: hovering a selected country shows hover style, not
+    // selected style — opacity/weight don't combine, by design there).
+    //   hasAgreement === false      -> solid dim background, fixed style
+    //   hasAgreement === true:
+    //     hover    -> opacity 0.8, weight (confirmed ? 2.5 : 2)
+    //     selected -> opacity 0.9, weight 2.5      (selected wiring: Phase 3)
+    //     default  -> opacity 0.75, weight 1.5
+    //   stroke color never changes with hover/selected, only fill does.
+
     map.addLayer({
       id: 'country-fills',
       type: 'fill',
@@ -588,15 +602,16 @@ map.on('load', async () => {
       paint: {
         'fill-color': [
           'case',
-          ['==', ['get', 'transfersOccurred'], true], '#f85149',  // red — transfers confirmed
-          ['==', ['get', 'hasAgreement'], true],       '#e3b341',  // yellow — agreement only
-          /* fallback */                                '#162438'   // dim — not tracked
+          ['!', ['get', 'hasAgreement']], '#162030',                          // untracked background (dark theme)
+          ['==', ['get', 'transfersOccurred'], true], '#f85149',               // red — transfers confirmed
+          /* agreement only */ '#e3b341'                                       // yellow
         ],
         'fill-opacity': [
           'case',
-          ['boolean', ['feature-state', 'hover'], false], 0.95,
-          ['==', ['get', 'hasAgreement'], true], 0.75,
-          0.25
+          ['!', ['get', 'hasAgreement']], 1,
+          ['boolean', ['feature-state', 'hover'], false], 0.8,
+          ['boolean', ['feature-state', 'selected'], false], 0.9,
+          /* default */ 0.75
         ]
       }
     });
@@ -608,19 +623,22 @@ map.on('load', async () => {
       paint: {
         'line-color': [
           'case',
-          ['==', ['get', 'hasAgreement'], true], '#ffffff',
-          'rgba(50,72,100,0.5)'
+          ['!', ['get', 'hasAgreement']], '#0d1828',                          // untracked stroke (dark theme)
+          ['==', ['get', 'transfersOccurred'], true], '#ff6b60',               // light red
+          /* agreement only */ '#f0c840'                                       // light gold
         ],
         'line-width': [
           'case',
-          ['boolean', ['feature-state', 'hover'], false], 2,
-          ['==', ['get', 'hasAgreement'], true], 1.1,
-          0.3
+          ['!', ['get', 'hasAgreement']], 0.5,
+          ['boolean', ['feature-state', 'hover'], false],
+            ['case', ['==', ['get', 'transfersOccurred'], true], 2.5, 2],
+          ['boolean', ['feature-state', 'selected'], false], 2.5,
+          /* default */ 1.5
         ]
       }
     });
 
-    // Minimal hover feedback (full sidebar wiring is Phase 3)
+    // Minimal hover feedback (full sidebar/click wiring is Phase 3)
     let hoveredId = null;
     map.on('mousemove', 'country-fills', (e) => {
       if (e.features.length === 0) return;
