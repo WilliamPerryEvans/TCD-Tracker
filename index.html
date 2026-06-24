@@ -1,873 +1,461 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-  <title>Third Country Deportations Tracker</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --header-h: 80px; }
-
-    body {
-      background: #060c14;
-      color: #e6edf3;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    /* ── HEADER ── */
-    #header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      background: rgba(13, 17, 23, 0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid #21262d;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-
-    #header-title { flex: 1; min-width: 200px; }
-    #header-title h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em; }
-    #header-title p { font-size: 12px; color: #8b949e; margin-top: 2px; }
-
-    #stats-bar { display: flex; gap: 20px; flex-wrap: wrap; }
-    .stat { text-align: center; }
-    .stat-value { font-size: 22px; font-weight: 700; line-height: 1; }
-    .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-    .stat-value.red { color: #f85149; }
-    .stat-value.orange { color: #e3b341; }
-    .stat-value.blue { color: #58a6ff; }
-    .stat-value.green { color: #3fb950; }
-
-    #region-row {
-      margin-top: 4px;
-      font-size: 10px;
-      display: flex;
-      align-items: center;
-      gap: 0;
-      flex-wrap: wrap;
-    }
-    .region-link {
-      cursor: pointer;
-      color: #484f58;
-      transition: color 0.15s;
-      white-space: nowrap;
-    }
-    .region-link:hover { color: #8b949e; }
-    .region-link.active { color: #58a6ff; }
-    .region-link strong { font-weight: 700; }
-    .region-sep { margin: 0 5px; color: #21262d; }
-
-    #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
-
-    #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; }
-
-    /* ── GLOBE ── */
-    #globe-container { position: fixed; inset: 0; top: var(--header-h); background: #060c14; }
-    body.light-mode #globe-container { background: #ddeaf3; }
-
-    /* ── LOADING ── */
-    #loading {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 500;
-      color: #8b949e;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid #21262d;
-      border-top-color: #58a6ff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── LEGEND (inline in country list header area) ── */
-    #legend { display: none; }
-
-    /* ── SIDEBAR ── */
-    #sidebar {
-      position: fixed;
-      top: var(--header-h); right: 0; bottom: 0;
-      width: 380px;
-      background: rgba(13, 17, 23, 0.97);
-      backdrop-filter: blur(12px);
-      border-left: 1px solid #21262d;
-      overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 200;
-    }
-
-    #sidebar.open { transform: translateX(0); }
-
-    #sidebar-close {
-      position: absolute;
-      top: 14px; right: 16px;
-      background: none; border: none;
-      color: #8b949e; font-size: 20px;
-      cursor: pointer; line-height: 1; padding: 4px;
-    }
-    #sidebar-close:hover { color: #f0f6fc; }
-
-    #sidebar-inner { padding: 20px; }
-
-    #sidebar-country-header {
-      padding-bottom: 16px;
-      border-bottom: 1px solid #21262d;
-      margin-bottom: 16px;
-    }
-
-    #sidebar-flag { font-size: 36px; margin-bottom: 8px; }
-    #sidebar-country-name { font-size: 20px; font-weight: 700; color: #f0f6fc; }
-
-    .transfer-badge {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.05em;
-    }
-
-    .badge-confirmed { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
-    .badge-pending { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
-
-    .info-block { margin-bottom: 14px; }
-    .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e; margin-bottom: 4px; }
-    .info-value { font-size: 14px; color: #c9d1d9; line-height: 1.5; }
-    .info-value.highlight { color: #f85149; font-weight: 500; }
-    .info-value.funding { color: #3fb950; font-weight: 600; }
-
-    .harms-box {
-      background: rgba(248,81,73,0.06);
-      border: 1px solid rgba(248,81,73,0.2);
-      border-radius: 6px;
-      padding: 10px 12px;
-      font-size: 13px; color: #c9d1d9; line-height: 1.6;
-    }
-
-    .legal-tag {
-      display: inline-block;
-      background: rgba(88,166,255,0.12);
-      border: 1px solid rgba(88,166,255,0.25);
-      color: #58a6ff;
-      font-size: 12px; padding: 2px 8px;
-      border-radius: 4px; margin: 2px 2px 2px 0;
-    }
-
-    .divider { border: none; border-top: 1px solid #21262d; margin: 14px 0; }
-
-    #sidebar::-webkit-scrollbar { width: 4px; }
-    #sidebar::-webkit-scrollbar-track { background: transparent; }
-    #sidebar::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
-
-    /* ── HINT ── */
-    #hint {
-      position: fixed; bottom: 24px; right: 24px;
-      z-index: 100; font-size: 12px; color: #484f58; text-align: right;
-    }
-
-    /* ── FILTER TOGGLE BUTTON (in header) ── */
-    #filter-toggle {
-      background: rgba(88,166,255,0.1);
-      border: 1px solid rgba(88,166,255,0.25);
-      color: #58a6ff;
-      font-size: 12px; font-weight: 600;
-      padding: 5px 12px; border-radius: 6px;
-      cursor: pointer; white-space: nowrap;
-      letter-spacing: 0.04em;
-      transition: background 0.15s;
-    }
-    #filter-toggle:hover { background: rgba(88,166,255,0.2); }
-    #filter-toggle.active { background: rgba(88,166,255,0.25); border-color: #58a6ff; }
-
-    /* ── FILTER PANEL ── */
-    #filter-panel {
-      position: fixed;
-      top: var(--header-h); left: 0; right: 0;
-      z-index: 95;
-      background: rgba(10, 15, 24, 0.97);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #21262d;
-      padding: 10px 20px 14px;
-      transform: translateY(-110%);
-      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    #filter-panel.open { transform: translateY(0); }
-
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 7px;
-    }
-    .filter-row:last-child { margin-bottom: 0; }
-
-    .filter-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #8b949e;
-      min-width: 70px;
-      flex-shrink: 0;
-    }
-
-    .filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
-
-    .pill {
-      background: rgba(33, 38, 45, 0.8);
-      border: 1px solid #30363d;
-      color: #8b949e;
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .pill:hover { border-color: #58a6ff; color: #c9d1d9; }
-    .pill.active { background: rgba(88,166,255,0.15); border-color: #58a6ff; color: #58a6ff; font-weight: 600; }
-    .pill.active.red  { background: rgba(248,81,73,0.15);  border-color: #f85149; color: #f85149; }
-    .pill.active.orange { background: rgba(227,179,65,0.15); border-color: #e3b341; color: #e3b341; }
-    .pill.active.green  { background: rgba(63,185,80,0.15);  border-color: #3fb950; color: #3fb950; }
-
-    #filter-clear {
-      margin-left: auto;
-      background: none;
-      border: 1px solid #30363d;
-      color: #484f58;
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #filter-clear:hover { border-color: #f85149; color: #f85149; }
-
-    /* active filter indicator on toggle button */
-    #filter-count {
-      display: inline-block;
-      background: #58a6ff;
-      color: #0d1117;
-      font-size: 10px; font-weight: 700;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      text-align: center; line-height: 16px;
-      margin-left: 4px;
-      display: none;
-    }
-
-    /* ── COUNTRY LIST ── */
-    #country-list {
-      position: fixed;
-      top: calc(var(--header-h) + 12px); left: 16px;
-      z-index: 110;
-      width: 210px;
-      transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      background: rgba(13, 17, 23, 0.92);
-      border: 1px solid #21262d;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    #country-list-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #8b949e;
-      cursor: pointer;
-      user-select: none;
-      border-bottom: 1px solid #21262d;
-    }
-    #country-list-header:hover { color: #c9d1d9; }
-
-    #country-list-arrow { font-size: 9px; transition: transform 0.2s; }
-    #country-list-arrow.closed { transform: rotate(180deg); }
-
-    #country-list-body {
-      max-height: calc(100vh - var(--header-h) - 90px);
-      overflow-y: auto;
-      transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    /* country-list position when panels open — handled in JS via updateCountryListPos() */
-    #country-list-body::-webkit-scrollbar { width: 3px; }
-    #country-list-body::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
-
-    .cl-section {
-      padding: 6px 10px 3px;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .cl-section.confirmed { color: #f85149; }
-    .cl-section.pending   { color: #e3b341; border-top: 1px solid #21262d; margin-top: 4px; padding-top: 8px; }
-
-    .cl-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px;
-      font-size: 13px;
-      color: #c9d1d9;
-      cursor: pointer;
-      border-radius: 4px;
-      margin: 1px 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .cl-item:hover { background: rgba(88, 166, 255, 0.08); color: #f0f6fc; }
-    .cl-item .cl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-    #country-list-subhead {
-      padding: 4px 12px 6px;
-      font-size: 10px;
-      color: #484f58;
-      border-bottom: 1px solid #21262d;
-    }
-
-    /* ── INTERNATIONAL RESPONSES (sidebar) ── */
-    .intl-response {
-      background: rgba(88,166,255,0.06);
-      border: 1px solid rgba(88,166,255,0.18);
-      border-radius: 5px;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-    }
-    .intl-response:last-child { margin-bottom: 0; }
-    .intl-response-meta {
-      font-size: 11px;
-      color: #58a6ff;
-      font-weight: 600;
-      margin-bottom: 3px;
-      letter-spacing: 0.02em;
-    }
-    .intl-response-text {
-      font-size: 13px;
-      color: #c9d1d9;
-      line-height: 1.55;
-    }
-
-    /* ── DOCS TOGGLE BUTTON (in header) ── */
-    #docs-toggle {
-      background: rgba(63,185,80,0.1);
-      border: 1px solid rgba(63,185,80,0.25);
-      color: #3fb950;
-      font-size: 12px; font-weight: 600;
-      padding: 5px 12px; border-radius: 6px;
-      cursor: pointer; white-space: nowrap;
-      letter-spacing: 0.04em;
-      transition: background 0.15s;
-    }
-    #docs-toggle:hover { background: rgba(63,185,80,0.18); }
-    #docs-toggle.active { background: rgba(63,185,80,0.22); border-color: #3fb950; }
-
-    /* ── DOCUMENTS PANEL ── */
-    #docs-panel {
-      position: fixed;
-      top: var(--header-h); left: 0; right: 0;
-      z-index: 94;
-      background: rgba(10, 15, 24, 0.97);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #21262d;
-      padding: 12px 20px 16px;
-      transform: translateY(-110%);
-      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      max-height: calc(100vh - var(--header-h));
-      overflow-y: auto;
-    }
-    #docs-panel.open { transform: translateY(0); }
-
-    #docs-panel-title {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: #3fb950; margin-bottom: 10px;
-    }
-    .docs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 8px;
-    }
-    .doc-card {
-      background: rgba(33,38,45,0.6);
-      border: 1px solid #21262d;
-      border-radius: 6px;
-      padding: 9px 12px;
-    }
-    .doc-card-date {
-      font-size: 11px; color: #3fb950;
-      font-weight: 700; margin-bottom: 3px;
-    }
-    .doc-card-title {
-      font-size: 13px; color: #f0f6fc;
-      font-weight: 600; line-height: 1.4;
-      margin-bottom: 2px;
-    }
-    .doc-card-source {
-      font-size: 11px; color: #8b949e;
-    }
-    #docs-igo-note {
-      margin-top: 10px;
-      font-size: 12px; color: #484f58;
-      border-top: 1px solid #21262d;
-      padding-top: 8px;
-      line-height: 1.5;
-    }
-    .docs-section-divider {
-      border: none; border-top: 1px solid #21262d;
-      margin: 14px 0 10px;
-    }
-    .docs-section-label {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 8px;
-    }
-    .docs-section-label.advocates { color: #58a6ff; }
-    .docs-section-label.trackers  { color: #e3b341; }
-    .doc-card.blue  { border-color: rgba(88,166,255,0.25); }
-    .doc-card.yellow { border-color: rgba(227,179,65,0.25); }
-    .doc-card-date.blue   { color: #58a6ff; }
-    .doc-card-date.yellow { color: #e3b341; }
-    a.doc-card-link { text-decoration: none; color: inherit; display: block; }
-    a.doc-card-link .doc-card { transition: border-color 0.15s, background 0.15s; cursor: pointer; }
-    a.doc-card-link:hover .doc-card { background: rgba(44,50,60,0.8); }
-    a.doc-card-link:hover .doc-card.blue   { border-color: rgba(88,166,255,0.55); }
-    a.doc-card-link:hover .doc-card.yellow { border-color: rgba(227,179,65,0.55); }
-    .doc-card-arrow { float: right; font-size: 11px; color: #484f58; margin-top: 1px; }
-    /* docs-open country-list position — handled in JS via updateCountryListPos() */
-
-    /* ── THEME TOGGLE BUTTON ── */
-    #theme-toggle {
-      background: rgba(139,148,158,0.1);
-      border: 1px solid rgba(139,148,158,0.25);
-      color: #8b949e;
-      font-size: 12px; font-weight: 600;
-      padding: 5px 12px; border-radius: 6px;
-      cursor: pointer; white-space: nowrap;
-      letter-spacing: 0.04em;
-      transition: background 0.15s, color 0.2s;
-    }
-    #theme-toggle:hover { background: rgba(139,148,158,0.2); color: #c9d1d9; }
-
-    /* ── LIGHT MODE OVERRIDES ── */
-    body.light-mode { background: #eef2f7; color: #24292f; }
-
-    body.light-mode #header {
-      background: rgba(238,242,247,0.96);
-      border-bottom-color: #d0d7de;
-    }
-    body.light-mode #header-title h1 { color: #24292f; }
-    body.light-mode #header-title p  { color: #57606a; }
-    body.light-mode .stat-label      { color: #57606a; }
-    body.light-mode #source-line     { color: #8c949e; }
-    body.light-mode .region-link     { color: #b0bac4; }
-    body.light-mode .region-link:hover { color: #24292f; }
-    body.light-mode .region-link.active { color: #0969da; }
-    body.light-mode .region-sep      { color: #d0d7de; }
-
-    body.light-mode #theme-toggle {
-      background: rgba(87,96,106,0.08);
-      border-color: rgba(87,96,106,0.25);
-      color: #57606a;
-    }
-    body.light-mode #theme-toggle:hover { background: rgba(87,96,106,0.15); color: #24292f; }
-
-    body.light-mode #filter-toggle {
-      background: rgba(9,105,218,0.07);
-      border-color: rgba(9,105,218,0.25);
-      color: #0969da;
-    }
-    body.light-mode #filter-toggle:hover  { background: rgba(9,105,218,0.13); }
-    body.light-mode #filter-toggle.active { background: rgba(9,105,218,0.17); border-color: #0969da; }
-
-    body.light-mode #docs-toggle {
-      background: rgba(26,127,55,0.07);
-      border-color: rgba(26,127,55,0.25);
-      color: #1a7f37;
-    }
-    body.light-mode #docs-toggle:hover  { background: rgba(26,127,55,0.13); }
-    body.light-mode #docs-toggle.active { background: rgba(26,127,55,0.17); border-color: #1a7f37; }
-
-    body.light-mode #sidebar {
-      background: rgba(248,250,252,0.98);
-      border-left-color: #d0d7de;
-    }
-    body.light-mode #sidebar-close      { color: #57606a; }
-    body.light-mode #sidebar-close:hover { color: #24292f; }
-    body.light-mode #sidebar-country-name { color: #24292f; }
-    body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
-    body.light-mode .info-label         { color: #57606a; }
-    body.light-mode .info-value         { color: #424a53; }
-    body.light-mode .harms-box          { background: rgba(248,81,73,0.04); color: #424a53; }
-    body.light-mode .divider            { border-top-color: #d0d7de; }
-    body.light-mode .intl-response      { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.18); }
-    body.light-mode .intl-response-meta { color: #0969da; }
-    body.light-mode .intl-response-text { color: #424a53; }
-    body.light-mode #sidebar::-webkit-scrollbar-thumb { background: #d0d7de; }
-
-    body.light-mode #filter-panel {
-      background: rgba(238,242,247,0.98);
-      border-bottom-color: #d0d7de;
-    }
-    body.light-mode #docs-panel {
-      background: rgba(238,242,247,0.98);
-      border-bottom-color: #d0d7de;
-    }
-    body.light-mode .filter-label { color: #57606a; }
-    body.light-mode .pill {
-      background: rgba(208,215,222,0.5);
-      border-color: #d0d7de;
-      color: #57606a;
-    }
-    body.light-mode .pill:hover   { border-color: #0969da; color: #24292f; }
-    body.light-mode .pill.active  { background: rgba(9,105,218,0.1); border-color: #0969da; color: #0969da; }
-    body.light-mode .pill.active.red    { background: rgba(248,81,73,0.1);  border-color: #f85149; color: #f85149; }
-    body.light-mode .pill.active.orange { background: rgba(210,140,30,0.1); border-color: #bf8700; color: #bf8700; }
-    body.light-mode .pill.active.green  { background: rgba(26,127,55,0.1);  border-color: #1a7f37; color: #1a7f37; }
-    body.light-mode #filter-clear { border-color: #d0d7de; color: #8c949e; }
-    body.light-mode #filter-clear:hover { border-color: #f85149; color: #f85149; }
-
-    body.light-mode #country-list {
-      background: rgba(238,242,247,0.95);
-      border-color: #d0d7de;
-    }
-    body.light-mode #country-list-header { color: #57606a; border-bottom-color: #d0d7de; }
-    body.light-mode #country-list-header:hover { color: #24292f; }
-    body.light-mode #country-list-subhead { color: #8c949e; border-bottom-color: #d0d7de; }
-    body.light-mode .cl-section.confirmed { color: #cf222e; }
-    body.light-mode .cl-section.pending   { color: #bf8700; border-top-color: #d0d7de; }
-    body.light-mode .cl-item             { color: #424a53; }
-    body.light-mode .cl-item:hover       { background: rgba(9,105,218,0.07); color: #24292f; }
-    body.light-mode #country-list-body::-webkit-scrollbar-thumb { background: #d0d7de; }
-
-    body.light-mode .doc-card          { background: rgba(208,215,222,0.35); border-color: #d0d7de; }
-    body.light-mode .doc-card-title    { color: #24292f; }
-    body.light-mode .doc-card-source   { color: #57606a; }
-    body.light-mode .doc-card-arrow    { color: #8c949e; }
-    body.light-mode .docs-section-divider { border-top-color: #d0d7de; }
-    body.light-mode #docs-panel-title  { color: #1a7f37; }
-    body.light-mode .docs-section-label.advocates { color: #0969da; }
-    body.light-mode .docs-section-label.trackers  { color: #bf8700; }
-    body.light-mode #docs-igo-note     { color: #8c949e; border-top-color: #d0d7de; }
-    body.light-mode #docs-igo-note strong { color: #57606a; }
-    body.light-mode .doc-card.blue     { border-color: rgba(9,105,218,0.25); }
-    body.light-mode .doc-card.yellow   { border-color: rgba(191,135,0,0.25); }
-    body.light-mode .doc-card-date.blue   { color: #0969da; }
-    body.light-mode .doc-card-date.yellow { color: #bf8700; }
-    body.light-mode a.doc-card-link:hover .doc-card       { background: rgba(188,200,215,0.55); }
-    body.light-mode a.doc-card-link:hover .doc-card.blue  { border-color: rgba(9,105,218,0.5); }
-    body.light-mode a.doc-card-link:hover .doc-card.yellow{ border-color: rgba(191,135,0,0.5); }
-
-    body.light-mode #hint { color: #8c949e; }
-
-    /* ════════════════════════════════════════
-       RESPONSIVE — GRACEFUL DEGRADATION
-       Desktop is the baseline; these rules
-       progressively simplify at smaller sizes.
-       ════════════════════════════════════════ */
-
-    /* ── Tablet (≤900px): tighten header, drop source line ── */
-    @media (max-width: 900px) {
-      #header { gap: 12px; padding: 10px 16px; }
-      #source-line { display: none; }
-      #stats-bar { gap: 14px; }
-    }
-
-    /* ── Large phone (≤680px): full-width sidebar, compact header ── */
-    @media (max-width: 680px) {
-      #header { gap: 8px; padding: 8px 12px; }
-      #header-title h1 { font-size: 14px; }
-      #header-title p, #region-row { display: none; }
-
-      #stats-bar { gap: 10px; }
-      .stat-value { font-size: 18px; }
-      .stat-label { font-size: 9px; }
-
-      #filter-toggle, #docs-toggle, #theme-toggle { font-size: 11px; padding: 4px 9px; }
-
-      /* Sidebar spans full width so it's actually usable */
-      #sidebar { width: 100vw; border-left: none; }
-
-      /* Panels: cap height and scroll so they don't bury the globe */
-      #docs-panel  { max-height: 55vh; overflow-y: auto; }
-      #filter-panel { max-height: 55vh; overflow-y: auto; }
-
-      /* Docs grid: one column fits narrow screens */
-      .docs-grid { grid-template-columns: 1fr; }
-
-      /* Country list: a bit narrower */
-      #country-list { width: 175px; }
-      .cl-item { font-size: 12px; padding: 4px 10px; }
-    }
-
-    /* ── Small phone (≤440px): hide country list, ultra-compact ── */
-    @media (max-width: 440px) {
-      #header-title { min-width: 120px; }
-      #header-title h1 { font-size: 13px; }
-
-      #stats-bar { gap: 8px; }
-      .stat-value { font-size: 16px; }
-      .stat-label { font-size: 9px; }
-
-      #[redacted]-logo { height: 24px; }
-      #filter-toggle, #docs-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
-
-      /* Country list stays collapsed (JS handles it) but remains tappable */
-      #country-list { width: 160px; }
-
-      #hint { display: none; }
-    }
-
-    /* ── VIEW TOGGLE (Globe / Map) ── */
-    #view-toggle {
-      display: flex;
-      border: 1px solid rgba(88,166,255,0.25);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    .view-btn {
-      background: none;
-      border: none;
-      color: #8b949e;
-      font-size: 12px; font-weight: 600;
-      padding: 5px 12px;
-      cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: background 0.15s, color 0.15s;
-    }
-    .view-btn:hover { background: rgba(88,166,255,0.1); color: #c9d1d9; }
-    .view-btn.active { background: rgba(88,166,255,0.18); color: #58a6ff; }
-    .view-btn:not(:last-child) { border-right: 1px solid rgba(88,166,255,0.25); }
-
-    /* ── MAP CONTAINER ── */
-    #map-container {
-      position: fixed;
-      inset: 0;
-      top: var(--header-h);
-      z-index: 0;
-      display: none;
-      background: #060c14;
-    }
-    body.light-mode #map-container { background: #9abfd4; }
-
-    /* ── LEAFLET OVERRIDES ── */
-    .leaflet-container {
-      background: #060c14;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    .leaflet-control-attribution { display: none !important; }
-    .leaflet-control-zoom a {
-      background: rgba(13,17,23,0.92) !important;
-      border-color: #21262d !important;
-      color: #8b949e !important;
-    }
-    .leaflet-control-zoom a:hover {
-      background: rgba(33,38,45,0.95) !important;
-      color: #f0f6fc !important;
-    }
-    /* Remove browser focus ring on clicked polygons */
-    .leaflet-interactive:focus { outline: none; }
-
-    /* Tooltip rendered as raw HTML — strip Leaflet's default tooltip chrome */
-    .leaflet-tooltip {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-    }
-    .leaflet-tooltip::before { display: none !important; }
-
-    body.light-mode .leaflet-container { background: #ddeaf3; }
-    body.light-mode .leaflet-control-zoom a {
-      background: rgba(238,242,247,0.95) !important;
-      border-color: #d0d7de !important;
-      color: #57606a !important;
-    }
-    body.light-mode .leaflet-control-zoom a:hover {
-      background: rgba(248,250,252,1) !important;
-      color: #24292f !important;
-    }
-
-    body.light-mode #view-toggle { border-color: rgba(9,105,218,0.25); }
-    body.light-mode .view-btn { color: #57606a; }
-    body.light-mode .view-btn:hover { background: rgba(9,105,218,0.08); color: #24292f; }
-    body.light-mode .view-btn.active { background: rgba(9,105,218,0.14); color: #0969da; }
-    body.light-mode .view-btn:not(:last-child) { border-right-color: rgba(9,105,218,0.25); }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Third Country Deportations Tracker</title>
+
+<!-- MapLibre GL JS v5 -->
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+
+<!-- TopoJSON Client (TopoJSON -> GeoJSON) -->
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body, #map { height: 100%; width: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #060c14; color: #e6edf3; }
+  #map { background: #060c14; }
+  body.light-mode { background: #eef2f7; color: #24292f; }
+  body.light-mode #map { background: #ddeaf3; }
+
+  /* ── SIDEBAR (copied from index.html) ── */
+  #sidebar {
+    position: fixed;
+    top: var(--header-h); right: 0; bottom: 0;
+    width: 380px;
+    background: rgba(13, 17, 23, 0.97);
+    backdrop-filter: blur(12px);
+    border-left: 1px solid #21262d;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  #sidebar-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    background: none; border: none;
+    color: #8b949e; font-size: 20px;
+    cursor: pointer; line-height: 1; padding: 4px;
+  }
+  #sidebar-close:hover { color: #f0f6fc; }
+
+  #sidebar-inner { padding: 20px; }
+
+  #sidebar-country-header {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 16px;
+  }
+
+  #sidebar-flag { font-size: 36px; margin-bottom: 8px; }
+  #sidebar-country-name { font-size: 20px; font-weight: 700; color: #f0f6fc; }
+
+  .transfer-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge-confirmed { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+  .badge-pending { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
+
+  .info-block { margin-bottom: 14px; }
+  .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e; margin-bottom: 4px; }
+  .info-value { font-size: 14px; color: #c9d1d9; line-height: 1.5; }
+  .info-value.highlight { color: #f85149; font-weight: 500; }
+  .info-value.funding { color: #3fb950; font-weight: 600; }
+
+  .harms-box {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px; color: #c9d1d9; line-height: 1.6;
+  }
+
+  .legal-tag {
+    display: inline-block;
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.25);
+    color: #58a6ff;
+    font-size: 12px; padding: 2px 8px;
+    border-radius: 4px; margin: 2px 2px 2px 0;
+  }
+
+  .divider { border: none; border-top: 1px solid #21262d; margin: 14px 0; }
+
+  .intl-response {
+    background: rgba(88,166,255,0.06);
+    border: 1px solid rgba(88,166,255,0.18);
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  .intl-response:last-child { margin-bottom: 0; }
+  .intl-response-meta { font-size: 11px; color: #58a6ff; font-weight: 600; margin-bottom: 3px; letter-spacing: 0.02em; }
+  .intl-response-text { font-size: 13px; color: #c9d1d9; line-height: 1.55; }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
+
+  #hint {
+    position: fixed; bottom: 24px; right: 24px;
+    z-index: 100; font-size: 12px; color: #484f58; text-align: right;
+  }
+
+  /* ── HEADER (copied from index.html) ── */
+  :root { --header-h: 80px; }
+
+  #header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #21262d;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  #header-title { flex: 1; min-width: 200px; }
+  #header-title h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em; }
+  #header-title p { font-size: 12px; color: #8b949e; margin-top: 2px; }
+
+  #stats-bar { display: flex; gap: 20px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 22px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .stat-value.red { color: #f85149; }
+  .stat-value.orange { color: #e3b341; }
+  .stat-value.blue { color: #58a6ff; }
+  .stat-value.green { color: #3fb950; }
+
+  #region-row { margin-top: 4px; font-size: 10px; display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .region-link { cursor: pointer; color: #484f58; transition: color 0.15s; white-space: nowrap; }
+  .region-link:hover { color: #8b949e; }
+  .region-link.active { color: #58a6ff; }
+  .region-link strong { font-weight: 700; }
+  .region-sep { margin: 0 5px; color: #21262d; }
+
+  #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
+  #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; }
+
+  /* ── VIEW TOGGLE (Map/Globe — copied from index.html) ── */
+  #view-toggle { display: flex; border: 1px solid rgba(88,166,255,0.25); border-radius: 6px; overflow: hidden; }
+  .view-btn {
+    background: none; border: none; color: #8b949e;
+    font-size: 12px; font-weight: 600; padding: 5px 12px;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .view-btn:hover { background: rgba(88,166,255,0.1); color: #c9d1d9; }
+  .view-btn.active { background: rgba(88,166,255,0.18); color: #58a6ff; }
+  .view-btn:not(:last-child) { border-right: 1px solid rgba(88,166,255,0.25); }
+
+  /* ── THEME TOGGLE BUTTON (copied from index.html) ── */
+  #theme-toggle {
+    background: rgba(139,148,158,0.1);
+    border: 1px solid rgba(139,148,158,0.25);
+    color: #8b949e;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.2s;
+  }
+  #theme-toggle:hover { background: rgba(139,148,158,0.2); color: #c9d1d9; }
+
+  /* ── LIGHT MODE OVERRIDES (copied from index.html; docs-panel and
+       Leaflet-specific rules omitted -- not applicable/not built yet) ── */
+  #header-title h1 { color: #f0f6fc; }
+  body.light-mode #header { background: rgba(255,255,255,0.92); border-bottom-color: #d0d7de; }
+  body.light-mode #header-title h1 { color: #24292f; }
+  body.light-mode #header-title p  { color: #57606a; }
+  body.light-mode .stat-label      { color: #57606a; }
+  body.light-mode #source-line     { color: #8c949e; }
+  body.light-mode .region-link     { color: #b0bac4; }
+  body.light-mode .region-link:hover { color: #24292f; }
+  body.light-mode .region-link.active { color: #0969da; }
+  body.light-mode .region-sep      { color: #d0d7de; }
+
+  body.light-mode #theme-toggle { background: rgba(87,96,106,0.08); border-color: rgba(87,96,106,0.2); color: #57606a; }
+  body.light-mode #theme-toggle:hover { background: rgba(87,96,106,0.15); color: #24292f; }
+
+  body.light-mode #filter-toggle { background: rgba(9,105,218,0.07); border-color: rgba(9,105,218,0.2); color: #0969da; }
+  body.light-mode #filter-toggle:hover  { background: rgba(9,105,218,0.13); }
+  body.light-mode #filter-toggle.active { background: rgba(9,105,218,0.17); border-color: #0969da; }
+
+  body.light-mode #sidebar { background: rgba(255,255,255,0.97); border-left-color: #d0d7de; }
+  body.light-mode #sidebar-close      { color: #57606a; }
+  body.light-mode #sidebar-close:hover { color: #24292f; }
+  body.light-mode #sidebar-country-name { color: #24292f; }
+  body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
+  body.light-mode .info-label         { color: #57606a; }
+  body.light-mode .info-value         { color: #424a53; }
+  body.light-mode .harms-box          { background: rgba(248,81,73,0.04); color: #424a53; }
+  body.light-mode .divider            { border-top-color: #d0d7de; }
+  body.light-mode .intl-response      { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.18); }
+  body.light-mode .intl-response-meta { color: #0969da; }
+  body.light-mode .intl-response-text { color: #424a53; }
+  body.light-mode #sidebar::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+  body.light-mode #filter-panel { background: rgba(255,255,255,0.97); border-bottom-color: #d0d7de; }
+  body.light-mode .filter-label { color: #57606a; }
+  body.light-mode .pill {
+    background: rgba(208,215,222,0.4); border-color: #d0d7de; color: #57606a;
+  }
+  body.light-mode .pill:hover   { border-color: #0969da; color: #24292f; }
+  body.light-mode .pill.active  { background: rgba(9,105,218,0.1); border-color: #0969da; color: #0969da; }
+  body.light-mode .pill.active.red    { background: rgba(248,81,73,0.1);  border-color: #f85149; color: #f85149; }
+  body.light-mode .pill.active.orange { background: rgba(210,140,30,0.1); border-color: #bf8700; color: #bf8700; }
+  body.light-mode .pill.active.green  { background: rgba(26,127,55,0.1);  border-color: #1a7f37; color: #1a7f37; }
+  body.light-mode #filter-clear { border-color: #d0d7de; color: #8c949e; }
+  body.light-mode #filter-clear:hover { border-color: #f85149; color: #f85149; }
+
+  body.light-mode #country-list { background: rgba(255,255,255,0.92); border-color: #d0d7de; }
+  body.light-mode #country-list-header { color: #57606a; border-bottom-color: #d0d7de; }
+  body.light-mode #country-list-header:hover { color: #24292f; }
+  body.light-mode #country-list-subhead { color: #8c949e; border-bottom-color: #d0d7de; }
+  body.light-mode .cl-section.confirmed { color: #cf222e; }
+  body.light-mode .cl-section.pending   { color: #bf8700; border-top-color: #d0d7de; }
+  body.light-mode .cl-item             { color: #424a53; }
+  body.light-mode .cl-item:hover       { background: rgba(9,105,218,0.07); color: #24292f; }
+  body.light-mode #country-list-body::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+  body.light-mode #view-toggle { border-color: rgba(9,105,218,0.25); }
+  body.light-mode .view-btn { color: #57606a; }
+  body.light-mode .view-btn:hover { background: rgba(9,105,218,0.08); color: #24292f; }
+  body.light-mode .view-btn.active { background: rgba(9,105,218,0.14); color: #0969da; }
+  body.light-mode .view-btn:not(:last-child) { border-right-color: rgba(9,105,218,0.25); }
+
+  body.light-mode #hint { color: #8c949e; }
+
+  /* ── COUNTRY LIST (copied from index.html) ── */
+  #country-list {
+    position: fixed;
+    top: calc(var(--header-h) + 12px); left: 16px;
+    z-index: 110;
+    width: 210px;
+    transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(13, 17, 23, 0.92);
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #country-list-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e;
+    cursor: pointer; user-select: none; border-bottom: 1px solid #21262d;
+  }
+  #country-list-header:hover { color: #c9d1d9; }
+  #country-list-arrow { font-size: 9px; transition: transform 0.2s; }
+  #country-list-arrow.closed { transform: rotate(180deg); }
+  #country-list-body {
+    max-height: calc(100vh - var(--header-h) - 90px);
+    overflow-y: auto;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #country-list-body::-webkit-scrollbar { width: 3px; }
+  #country-list-body::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
+  .cl-section { padding: 6px 10px 3px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .cl-section.confirmed { color: #f85149; }
+  .cl-section.pending   { color: #e3b341; border-top: 1px solid #21262d; margin-top: 4px; padding-top: 8px; }
+  .cl-item {
+    display: flex; align-items: center; gap: 7px;
+    padding: 5px 12px; font-size: 13px; color: #c9d1d9;
+    cursor: pointer; border-radius: 4px; margin: 1px 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cl-item:hover { background: rgba(88, 166, 255, 0.08); color: #f0f6fc; }
+  .cl-item .cl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  #country-list-subhead { padding: 4px 12px 6px; font-size: 10px; color: #484f58; border-bottom: 1px solid #21262d; }
+
+  #filter-toggle {
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.25);
+    color: #58a6ff;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  #filter-toggle:hover { background: rgba(88,166,255,0.2); }
+  #filter-toggle.active { background: rgba(88,166,255,0.25); border-color: #58a6ff; }
+
+  #filter-panel {
+    position: fixed;
+    top: var(--header-h); left: 0; right: 0;
+    z-index: 95;
+    background: rgba(10, 15, 24, 0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #21262d;
+    padding: 10px 20px 14px;
+    transform: translateY(-110%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #filter-panel.open { transform: translateY(0); }
+
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .filter-row:last-child { margin-bottom: 0; }
+
+  .filter-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #8b949e; min-width: 70px; flex-shrink: 0;
+  }
+
+  .filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .pill {
+    background: rgba(33, 38, 45, 0.8);
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .pill.active { background: rgba(88,166,255,0.15); border-color: #58a6ff; color: #58a6ff; font-weight: 600; }
+  .pill.active.red    { background: rgba(248,81,73,0.15);  border-color: #f85149; color: #f85149; }
+  .pill.active.orange  { background: rgba(227,179,65,0.15); border-color: #e3b341; color: #e3b341; }
+  .pill.active.green  { background: rgba(63,185,80,0.15);  border-color: #3fb950; color: #3fb950; }
+
+  #filter-clear {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #30363d;
+    color: #484f58;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #filter-clear:hover { border-color: #f85149; color: #f85149; }
+
+  #filter-count {
+    display: inline-block;
+    background: #58a6ff;
+    color: #0d1117;
+    font-size: 10px; font-weight: 700;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    text-align: center; line-height: 16px;
+    margin-left: 4px;
+    display: none;
+  }
+
+  /* ── RESPONSIVE BREAKPOINTS (copied from index.html; #docs-toggle/
+       #docs-panel/.docs-grid rules omitted -- not built in this version) ── */
+  @media (max-width: 900px) {
+    #header { gap: 12px; padding: 10px 16px; }
+    #source-line { display: none; }
+    #stats-bar { gap: 14px; }
+  }
+
+  /* ── Large phone (≤680px): full-width sidebar, compact header ── */
+  @media (max-width: 680px) {
+    #header { gap: 8px; padding: 8px 12px; }
+    #header-title h1 { font-size: 14px; }
+    #header-title p, #region-row { display: none; }
+
+    #stats-bar { gap: 10px; }
+    .stat-value { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+
+    #filter-toggle, #theme-toggle { font-size: 11px; padding: 4px 9px; }
+
+    /* Sidebar spans full width so it's actually usable */
+    #sidebar { width: 100vw; border-left: none; }
+
+    /* Panels: cap height and scroll so they don't bury the map */
+    #filter-panel { max-height: 55vh; overflow-y: auto; }
+
+    /* Country list: a bit narrower */
+    #country-list { width: 175px; }
+    .cl-item { font-size: 12px; padding: 4px 10px; }
+  }
+
+  /* ── Small phone (≤440px): hide country list, ultra-compact ── */
+  @media (max-width: 440px) {
+    #header-title { min-width: 120px; }
+    #header-title h1 { font-size: 13px; }
+
+    #stats-bar { gap: 8px; }
+    .stat-value { font-size: 16px; }
+    .stat-label { font-size: 9px; }
+
+    #[redacted]-logo { height: 24px; }
+    #filter-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
+
+    /* Country list stays collapsed (JS handles it) but remains tappable */
+    #country-list { width: 160px; }
+
+    #hint { display: none; }
+  }
+</style>
 </head>
 <body>
+<div id="map"></div>
 
-<!-- HEADER -->
+<!-- HEADER (markup copied verbatim from index.html, minus docs/theme/view-toggle
+     buttons -- those are inert until Phase 6/8, added then rather than now). -->
 <div id="header">
   <div id="header-title">
     <h1>Third Country Deportations Tracker</h1>
     <p>Forced transfers under U.S. bilateral agreements &mdash; as of June 2026</p>
     <div id="region-row">
-      <span class="region-link" id="rl-americas" onclick="setRegionFilter('Americas')">Americas <strong id="rb-americas">14</strong></span>
+      <span class="region-link" id="rl-americas" onclick="setRegionFilter('Americas')">Americas <strong id="rb-americas">15</strong></span>
       <span class="region-sep">&middot;</span>
-      <span class="region-link" id="rl-africa" onclick="setRegionFilter('Africa')">Africa <strong id="rb-africa">9</strong></span>
+      <span class="region-link" id="rl-africa" onclick="setRegionFilter('Africa')">Africa <strong id="rb-africa">14</strong></span>
       <span class="region-sep">&middot;</span>
-      <span class="region-link" id="rl-europe" onclick="setRegionFilter('Europe')">Europe <strong id="rb-europe">2</strong></span>
+      <span class="region-link" id="rl-europe" onclick="setRegionFilter('Europe')">Europe <strong id="rb-europe">3</strong></span>
       <span class="region-sep">&middot;</span>
-      <span class="region-link" id="rl-asia" onclick="setRegionFilter('Asia &amp; Pacific')">Asia &amp; Pacific <strong id="rb-asia">2</strong></span>
+      <span class="region-link" id="rl-asia" onclick="setRegionFilter('Asia &amp; Pacific')">Asia &amp; Pacific <strong id="rb-asia">3</strong></span>
     </div>
   </div>
   <div id="stats-bar">
     <div class="stat"><div class="stat-value blue" id="stat-total">35</div><div class="stat-label" id="stat-total-label">Countries</div></div>
     <div class="stat"><div class="stat-value red" id="stat-confirmed">0</div><div class="stat-label">With Transfers</div></div>
     <div class="stat"><div class="stat-value orange" id="stat-pending">0</div><div class="stat-label">Agreement Only</div></div>
-    <div class="stat"><div class="stat-value green" id="stat-funding">$54M+</div><div class="stat-label">U.S. Funding</div></div>
+    <div class="stat"><div class="stat-value green" id="stat-funding">&mdash;</div><div class="stat-label">U.S. Funding</div></div>
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
-  <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
-  <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <div id="view-toggle">
     <button class="view-btn active" id="view-map-btn" onclick="switchView('map')">Map</button>
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
+  <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
 
-<!-- DOCUMENTS PANEL -->
-<div id="docs-panel">
-  <div id="docs-panel-title">Key Government Documents &amp; Resources</div>
-  <div class="docs-grid">
-    <div class="doc-card">
-      <div class="doc-card-date">Feb 18, 2025</div>
-      <div class="doc-card-title">DHS Policy Directive on Third Country Deportations</div>
-      <div class="doc-card-source">Dept. of Homeland Security</div>
-    </div>
-    <div class="doc-card">
-      <div class="doc-card-date">Mar 30, 2025</div>
-      <div class="doc-card-title">DHS Memo: Guidance Regarding Third Country Removals</div>
-      <div class="doc-card-source">Dept. of Homeland Security</div>
-    </div>
-    <div class="doc-card">
-      <div class="doc-card-date">Jul 10, 2025</div>
-      <div class="doc-card-title">ICE Memo: Third Country Removals Following Supreme Court Order in DHS v. D.V.D.</div>
-      <div class="doc-card-source">Immigration and Customs Enforcement</div>
-    </div>
-    <div class="doc-card">
-      <div class="doc-card-date">Sep 24, 2025</div>
-      <div class="doc-card-title">Congressional Letter Seeking Information on Third Country Deportations</div>
-      <div class="doc-card-source">Sen. Elizabeth Warren</div>
-    </div>
-    <div class="doc-card">
-      <div class="doc-card-date">Nov 10, 2025</div>
-      <div class="doc-card-title">Letter to DOS Secretary Rubio re: $7.5M Transfer to Equatorial Guinea</div>
-      <div class="doc-card-source">Ranking Member Sen. Jeanne Shaheen</div>
-    </div>
+<!-- COUNTRY LIST (markup copied verbatim from index.html) -->
+<div id="country-list">
+  <div id="country-list-header" onclick="toggleCountryList()">
+    <span id="country-list-title">All Countries</span>
+    <span id="country-list-arrow">&#9650;</span>
   </div>
-  <div id="docs-igo-note">
-    <strong style="color:#8b949e;">International responses:</strong>
-    Jul 8, 2025 &mdash; UN Special Rapporteurs alarmed by Supreme Court order clearing way for deportations, stressing assessments must be individual and country-specific. &nbsp;&middot;&nbsp;
-    Oct 6, 2025 &mdash; UN High Commissioner for Refugees stated concern about the legality of U.S. deportation practices, urging countries to consult UNHCR before entering agreements.
-  </div>
-
-  <hr class="docs-section-divider">
-  <div class="docs-section-label advocates">For Advocates &amp; Legal Practitioners</div>
-  <div class="docs-grid">
-    <a class="doc-card-link" href="https://www.justiceinmotion.org/legal-action" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Ongoing <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Post-Deportation Intake &amp; Referral Form</div>
-        <div class="doc-card-source">Justice in Motion (JiM) — post-deportation monitoring, rights violation detection, and connection to local resources in MX, GT, ES, HN, NI</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://immigrationlitigation.org/new-advisoryprotecting-noncitizens-granted-withholding-of-removal-or-cat-protection-against-deportation-to-third-countries-where-they-fear-persecution-torture/" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Jan 29, 2025 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Practice Advisory: Protecting Noncitizens with Withholding of Removal or CAT Against Third Country Deportation</div>
-        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://immigrationlitigation.org/wp-content/uploads/2025/06/25.05.27-DVD-Practice-Alert.pdf" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Jun 27, 2025 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Practice Alert: Third Country Deportations and D.V.D. v. DHS</div>
-        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://immigrantjustice.org/for-attorneys/resources/training-responding-to-motions-to-pretermit-asylum-applications/" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Jan 20, 2026 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Responding to Motions to Pretermit Asylum Applications</div>
-        <div class="doc-card-source">National Immigrant Justice Center (NIJC)</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://www.ilrc.org/community-resources/asylum-cooperative-agreements-what-you-must-know" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Dec 2, 2025 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Asylum Cooperative Agreements: What You Must Know</div>
-        <div class="doc-card-source">Immigrant Legal Resource Center (ILRC)</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://nipnlg.org/work/resources/fifteen-steps-addressing-orders-removal-issued-immigration-judge" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Reference <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Fifteen Steps for Addressing Orders of Removal Issued by an Immigration Judge</div>
-        <div class="doc-card-source">National Immigration Project (NIPNLG)</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://refugees.org/behind-the-brief-the-danger-of-institutionalizing-third-country-returns/" target="_blank" rel="noopener">
-      <div class="doc-card blue">
-        <div class="doc-card-date blue">Nov 19, 2025 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Behind the Brief: The Danger of Institutionalizing Third Country Returns</div>
-        <div class="doc-card-source">[redacted] ([redacted])</div>
-      </div>
-    </a>
-  </div>
-
-  <hr class="docs-section-divider">
-  <div class="docs-section-label trackers">Other Trackers &amp; Explainers</div>
-  <div class="docs-grid">
-    <a class="doc-card-link" href="https://humanrightsfirst.org/events/banished-by-bargain-third-country-deportation-watch/" target="_blank" rel="noopener">
-      <div class="doc-card yellow">
-        <div class="doc-card-date yellow">Updated May 29, 2026 <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">Banished by Bargain: Third Country Deportation Watch</div>
-        <div class="doc-card-source">Human Rights First &amp; Refugees International — primary source data for this tracker</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://humanrightsfirst.org/ice-flight-monitor/" target="_blank" rel="noopener">
-      <div class="doc-card yellow">
-        <div class="doc-card-date yellow">Live <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">ICE Flight Monitor</div>
-        <div class="doc-card-source">Human Rights First — tracks deportation flights in real time</div>
-      </div>
-    </a>
-    <a class="doc-card-link" href="https://www.cfr.org/articles/what-are-third-country-deportations-and-why-trump-using-them" target="_blank" rel="noopener">
-      <div class="doc-card yellow">
-        <div class="doc-card-date yellow">Explainer <span class="doc-card-arrow">↗</span></div>
-        <div class="doc-card-title">What Are Third Country Deportations, and Why Is Trump Using Them?</div>
-        <div class="doc-card-source">Council on Foreign Relations (CFR)</div>
-      </div>
-    </a>
-  </div>
+  <div id="country-list-subhead">Click any country to zoom</div>
+  <div id="country-list-body"></div>
 </div>
 
-<!-- FILTER PANEL -->
+<!-- FILTER PANEL (markup copied verbatim from index.html) -->
 <div id="filter-panel">
   <div class="filter-row">
     <span class="filter-label">Region</span>
@@ -909,34 +497,7 @@
   </div>
 </div>
 
-<!-- GLOBE -->
-<div id="globe-container"></div>
-
-<!-- MAP (flat Leaflet view) -->
-<div id="map-container"></div>
-
-<!-- LOADING -->
-<div id="loading"><div class="spinner"></div>Loading world map&hellip;</div>
-
-<!-- LEGEND -->
-<div id="legend">
-  <h4>Transfer Status</h4>
-  <div class="legend-item"><div class="legend-dot" style="background:#f85149;"></div>Confirmed transfers</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#e3b341;"></div>Agreement only</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#1a2535;border:1px solid #30415a;"></div>No agreement</div>
-</div>
-
-<!-- COUNTRY LIST -->
-<div id="country-list">
-  <div id="country-list-header" onclick="toggleCountryList()">
-    <span id="country-list-title">All Countries</span>
-    <span id="country-list-arrow">▲</span>
-  </div>
-  <div id="country-list-subhead">Click any country to zoom</div>
-  <div id="country-list-body"></div>
-</div>
-
-<!-- SIDEBAR -->
+<!-- SIDEBAR (markup copied verbatim from index.html) -->
 <div id="sidebar">
   <button id="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
   <div id="sidebar-inner">
@@ -949,17 +510,19 @@
   </div>
 </div>
 
-<!-- HINT -->
 <div id="hint">Click any highlighted country to see details</div>
-
-<script src="https://unpkg.com/globe.gl@2.30.0/dist/globe.gl.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 // ──────────────────────────────────────────────
-// COUNTRY DATA
+// PHASE 0/1 SCAFFOLD — isolated from index.html on purpose.
+// This file is a standalone MapLibre rebuild, developed on the
+// `maplibre-migration` branch. The original Leaflet/Globe.gl
+// index.html on `main` is untouched; this is the easy revert path.
+// Data below is copied verbatim from index.html (not shared/imported)
+// so neither file can accidentally break the other during migration.
 // ──────────────────────────────────────────────
+
+// ── COUNTRY DATA (copied verbatim from index.html) ──
 const COUNTRIES = [
   {
     name: "Antigua and Barbuda", flag: "🇦🇬",
@@ -1366,10 +929,7 @@ const COUNTRIES = [
   }
 ];
 
-// ──────────────────────────────────────────────
-// ISO 3166-1 NUMERIC → COUNTRY NAME LOOKUP
-// Maps topojson feature IDs to our data
-// ──────────────────────────────────────────────
+// ── ISO 3166-1 NUMERIC -> COUNTRY NAME (copied verbatim from index.html) ──
 const ISO_TO_NAME = {
   '028': 'Antigua and Barbuda',
   '064': 'Bhutan',
@@ -1411,7 +971,6 @@ const ISO_TO_NAME = {
 const DATA_BY_NAME = {};
 COUNTRIES.forEach(c => DATA_BY_NAME[c.name] = c);
 
-// ── REGION LOOKUP ──
 const REGION_GROUPS = {
   'Americas':      ['Antigua and Barbuda','Belize','Costa Rica','Dominica','Dominican Republic','Ecuador',
                     'El Salvador','Guatemala','Guyana','Honduras','Mexico','Panama',
@@ -1425,365 +984,49 @@ const REGION_GROUPS = {
 const NAME_TO_REGION = {};
 Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO_REGION[n] = r));
 
-// ── TYPE / FUNDING HELPERS ──
-function getTypeCode(c) {
-  const t = c.agreementType.toLowerCase();
-  if (t.includes('incarceration'))  return 'incarceration';
-  if (t.includes('asylum'))         return 'aca';
-  if (t.includes('hybrid'))         return 'hybrid';
-  if (t.includes('temporary'))      return 'temporary';
-  if (t.includes('removal'))        return 'removal';
-  return 'unknown';
-}
-function hasFunding(c) {
-  return !c.funding.startsWith('No direct') && !c.funding.startsWith('No financial') && c.funding !== 'Not applicable';
-}
+// Small island nations omitted from the 110m topojson resolution —
+// pulled from the 50m file instead (same set as the current Leaflet build, + Cabo Verde).
+const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
 
-// ── THEME STATE ──
+// ──────────────────────────────────────────────
+// PHASE 8: theme state (copied verbatim from index.html). Declared this
+// early so the map constructor and initial layer paint below can read
+// the persisted preference from the very first paint, not just on toggle.
+// ──────────────────────────────────────────────
 let darkMode = localStorage.getItem('tcd-theme') !== 'light';
 if (!darkMode) document.body.classList.add('light-mode');
+document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
 
-// ── FILTER STATE ──
-const filters = { region: '', status: '', type: '', funding: '' };
+// Real implementation assigned once map data loads; placeholder avoids
+// errors if the theme button is clicked before geometry finishes loading.
+window.setMapTheme = function() {};
 
-function matchesFilters(c) {
-  if (!c) return true;
-  if (filters.region   && NAME_TO_REGION[c.name] !== filters.region)           return false;
-  if (filters.status === 'confirmed' && !c.transfersOccurred)                   return false;
-  if (filters.status === 'pending'   &&  c.transfersOccurred)                   return false;
-  if (filters.type     && getTypeCode(c) !== filters.type)                      return false;
-  if (filters.funding === 'funded'   && !hasFunding(c))                         return false;
-  if (filters.funding === 'unfunded' &&  hasFunding(c))                         return false;
-  return true;
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.body.classList.toggle('light-mode', !darkMode);
+  document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
+  localStorage.setItem('tcd-theme', darkMode ? 'dark' : 'light');
+  window.setMapTheme(darkMode);
 }
 
-// ── DYNAMIC STATS ──
-function updateStats() {
-  const visible = COUNTRIES.filter(matchesFilters);
-  const isFiltered = Object.values(filters).some(v => v !== '');
-
-  document.getElementById('stat-total').textContent = visible.length;
-  document.getElementById('stat-confirmed').textContent = visible.filter(c => c.transfersOccurred).length;
-  document.getElementById('stat-pending').textContent = visible.filter(c => !c.transfersOccurred).length;
-  document.getElementById('stat-total-label').textContent = isFiltered ? `of ${COUNTRIES.length} shown` : 'Countries';
-
-  // Funding: sum quantified amounts; append + if any visible country has extra/unquantified funding
-  const totalUSD = visible.reduce((s, c) => s + (c.fundingUSD || 0), 0);
-  const hasExtra = visible.some(c => c.fundingExtra || (hasFunding(c) && !c.fundingUSD));
-  const fundingEl = document.getElementById('stat-funding');
-  if (totalUSD > 0) {
-    const rounded = Math.round(totalUSD * 10) / 10; // one decimal if needed
-    const display = Number.isInteger(rounded) ? rounded : rounded.toFixed(1);
-    fundingEl.textContent = `$${display}M${hasExtra ? '+' : ''}`;
-  } else if (hasExtra) {
-    fundingEl.textContent = 'Reported';
-  } else {
-    fundingEl.textContent = '—'; // em dash
-  }
-
-  // Regional breakdown counts + active highlight
-  const regionKeys = [
-    ['Americas', 'rl-americas', 'rb-americas'],
-    ['Africa',   'rl-africa',   'rb-africa'],
-    ['Europe',   'rl-europe',   'rb-europe'],
-    ['Asia & Pacific', 'rl-asia', 'rb-asia']
-  ];
-  regionKeys.forEach(([region, linkId, countId]) => {
-    const count = visible.filter(c => NAME_TO_REGION[c.name] === region).length;
-    const countEl = document.getElementById(countId);
-    const linkEl  = document.getElementById(linkId);
-    if (countEl) countEl.textContent = count;
-    if (linkEl)  linkEl.classList.toggle('active', filters.region === region);
-  });
-}
-
-// ── SET REGION FILTER (from region-row clicks) ──
-function setRegionFilter(region) {
-  filters.region = filters.region === region ? '' : region;
-  document.querySelectorAll('.pill[data-group="region"]').forEach(p => {
-    p.classList.toggle('active', p.dataset.value === filters.region);
-  });
-  updateFilterCount();
-  updateStats();
-  refreshPolygons();
-  buildCountryList();
-}
-
-updateStats();
-
+// ──────────────────────────────────────────────
+// PHASE 7: transfer arcs (US -> country) — static only, ported verbatim
+// from index.html's greatCirclePoints()/USA constant. Note this function
+// returns [lat, lng] pairs (the original's Leaflet-oriented convention,
+// kept as-is here); flipped to [lng, lat] at the GeoJSON-building call
+// site below, same coordinate-order discipline as Phase 3.
+//
+// PARITY NOTE: checked the live site and drawMapArcs() (the flat-map
+// arc renderer) is dead code -- it's defined but never actually called
+// anywhere, so the production Map view currently shows NO arcs at all;
+// arcs only render on the Globe view (animated, via Globe.gl). That
+// looks like an oversight rather than a deliberate choice, so this
+// migration adds static arcs to BOTH projections rather than
+// reproducing the gap. Animated dashing is intentionally skipped per
+// instruction -- low priority right now; static arcs render in both
+// map and globe modes.
+// ──────────────────────────────────────────────
 const USA = { lat: 38.9, lng: -77.0 };
-const globeEl = document.getElementById('globe-container');
-let globe = null;
-let selectedName = null;
-
-// ── MAP STATE ──
-let cachedGeoData = null;
-let leafletMap = null;
-let mapGeoJsonLayer = null;
-let mapArcs = [];
-let viewMode = 'map';
-let mapInitialized = false;
-
-// Named accessors — re-applied reactively when selection or filters change
-function polyCapColor(d) {
-  if (!d._tcd) return darkMode ? '#162438' : '#c8d8e8';
-  if (!matchesFilters(d._tcd)) return darkMode ? '#182030' : '#d4e0ea';
-  return d._tcd.transfersOccurred ? '#f85149' : '#e3b341';
-}
-
-function polyStroke(d) {
-  if (d._tcd && d._tcd.name === selectedName) return darkMode ? 'white' : '#24292f';
-  if (!d._tcd) return darkMode ? 'rgba(50,72,100,0.5)' : 'rgba(160,185,205,0.55)';
-  if (!matchesFilters(d._tcd)) return darkMode ? 'rgba(40,55,75,0.4)' : 'rgba(160,185,205,0.35)';
-  return d._tcd.transfersOccurred ? '#ff6b60' : '#f0c840';
-}
-
-function polyAlt(d) {
-  if (d._tcd && d._tcd.name === selectedName) return 0.018;
-  if (!d._tcd) return 0.003;
-  if (!matchesFilters(d._tcd)) return 0.003;
-  return d._tcd.transfersOccurred ? 0.010 : 0.006;
-}
-
-function polygonLabelFn(d) {
-  if (!d._tcd) return '';
-  const c = d._tcd;
-  const color = c.transfersOccurred ? '#f85149' : '#e3b341';
-  const status = c.transfersOccurred ? '● Transfers confirmed' : '○ Agreement only — no transfers yet';
-  const bg     = darkMode ? 'rgba(13,17,23,0.93)'    : 'rgba(238,242,247,0.97)';
-  const border = darkMode ? '#21262d'                 : '#d0d7de';
-  const title  = darkMode ? '#f0f6fc'                 : '#24292f';
-  const hint   = darkMode ? '#484f58'                 : '#8c949e';
-  return `<div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none;">
-    <div style="font-size:15px;font-weight:700;color:${title};">${c.flag} ${c.name}</div>
-    <div style="font-size:12px;color:${color};margin-top:4px;">${status}</div>
-    <div style="font-size:11px;color:${hint};margin-top:3px;">Click to see details</div>
-  </div>`;
-}
-
-function refreshPolygons() {
-  if (globe) {
-    globe.polygonCapColor(polyCapColor).polygonStrokeColor(polyStroke).polygonAltitude(polyAlt);
-    const arcData = COUNTRIES.filter(c => c.transfersOccurred && matchesFilters(c));
-    globe.arcsData(arcData);
-  }
-  refreshMapPolygons();
-}
-
-// ──────────────────────────────────────────────
-// SHARED GEO DATA (fetched once, used by both views)
-// ──────────────────────────────────────────────
-async function fetchGeoData() {
-  if (cachedGeoData) return cachedGeoData;
-  const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
-  const [topo110, topo50] = await Promise.all([
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json())
-  ]);
-  const mainFeatures   = topojson.feature(topo110, topo110.objects.countries).features;
-  const islandFeatures = topojson.feature(topo50,  topo50.objects.countries).features
-    .filter(f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0')));
-  const allFeatures = [...mainFeatures, ...islandFeatures].map(f => {
-    const iso  = String(f.id).padStart(3, '0');
-    const name = ISO_TO_NAME[iso];
-    return { ...f, _tcd: name ? DATA_BY_NAME[name] : null };
-  });
-  cachedGeoData = { allFeatures };
-  return cachedGeoData;
-}
-
-// ──────────────────────────────────────────────
-// GLOBE INIT
-// ──────────────────────────────────────────────
-async function initGlobe() {
-  const loadingEl = document.getElementById('loading');
-
-  try {
-    const { allFeatures } = await fetchGeoData();
-    loadingEl.style.display = 'none';
-
-    // Solid ocean color canvas — no external image request, eliminates texture z-fighting
-    const oceanCanvas = document.createElement('canvas');
-    oceanCanvas.width = 64; oceanCanvas.height = 32;
-    const octx = oceanCanvas.getContext('2d');
-    octx.fillStyle = darkMode ? '#0a1828' : '#9abfd4';
-    octx.fillRect(0, 0, 64, 32);
-    // Store refs so updateGlobeTheme() can repaint without reinitialising
-    window._oceanCanvas = oceanCanvas;
-    window._oceanCtx = octx;
-
-    globe = Globe()
-      .width(globeEl.clientWidth)
-      .height(globeEl.clientHeight)
-      .globeImageUrl(oceanCanvas.toDataURL())
-      .backgroundImageUrl('')
-      .backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)')
-
-      // ── COUNTRY POLYGONS ──
-      .polygonsData(allFeatures)
-      .polygonGeoJsonGeometry(d => d.geometry)
-      .polygonCapColor(polyCapColor)
-      .polygonSideColor(() => 'transparent')
-      .polygonStrokeColor(polyStroke)
-      .polygonAltitude(polyAlt)
-      .polygonLabel(polygonLabelFn)
-      .onPolygonClick(d => { if (d._tcd) openSidebar(d._tcd); })
-      .onPolygonHover(d => {
-        globeEl.style.cursor = (d && d._tcd) ? 'pointer' : 'default';
-      })
-
-      // ── DEPORTATION ARCS (US → confirmed-transfer countries) ──
-      .arcsData(COUNTRIES.filter(c => c.transfersOccurred))
-      .arcStartLat(() => USA.lat)
-      .arcStartLng(() => USA.lng)
-      .arcEndLat(d => d.lat)
-      .arcEndLng(d => d.lng)
-      .arcColor(() => ['rgba(248,81,73,0)', 'rgba(248,81,73,0.65)', 'rgba(248,81,73,0)'])
-      .arcAltitudeAutoScale(0.35)
-      .arcStroke(0.45)
-      .arcDashLength(0.4)
-      .arcDashGap(0.2)
-      .arcDashAnimateTime(4500)
-
-      (globeEl);
-
-    const ctrl = globe.controls();
-    ctrl.autoRotate = true;
-    ctrl.autoRotateSpeed = 0.4;
-    ctrl.enableZoom = true;
-    ctrl.zoomSpeed = 3.0;
-    ctrl.enableDamping = true;
-    ctrl.dampingFactor = 0.12;
-    globe.pointOfView({ lat: 20, lng: -30, altitude: 2.2 }, 0);
-
-    window.addEventListener('resize', () => {
-      globe.width(globeEl.clientWidth).height(globeEl.clientHeight);
-    });
-
-    // Map is the default view — switch to it now that geo data is ready
-    if (viewMode === 'map') {
-      globeEl.style.display = 'none';
-      document.getElementById('map-container').style.display = 'block';
-      initMap();
-      mapInitialized = true;
-    }
-
-  } catch (err) {
-    loadingEl.innerHTML = '<span style="color:#f85149;">Failed to load map data. Please refresh.</span>';
-    console.error(err);
-  }
-}
-
-initGlobe();
-
-// ──────────────────────────────────────────────
-// FLAT MAP VIEW
-// ──────────────────────────────────────────────
-function switchView(mode) {
-  viewMode = mode;
-  const mapEl = document.getElementById('map-container');
-  document.getElementById('view-globe-btn').classList.toggle('active', mode === 'globe');
-  document.getElementById('view-map-btn').classList.toggle('active', mode === 'map');
-
-  if (mode === 'map') {
-    globeEl.style.display = 'none';
-    mapEl.style.display = 'block';
-    if (!mapInitialized) {
-      if (!cachedGeoData) {
-        mapEl.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#8b949e;font-size:13px;">Loading map…</div>';
-        return;
-      }
-      initMap();
-      mapInitialized = true;
-    } else {
-      leafletMap.invalidateSize();
-    }
-  } else {
-    mapEl.style.display = 'none';
-    globeEl.style.display = 'block';
-    if (globe) globe.width(globeEl.clientWidth).height(globeEl.clientHeight);
-  }
-}
-
-// Fix antimeridian issue: unwrap ring coords so there are no >180° jumps,
-// then shift the ring back into [-180,180] if the mean longitude drifted out.
-function fixMapGeometry(geom) {
-  function fixRing(ring) {
-    if (!ring.length) return ring;
-    const out = [[...ring[0]]];
-    for (let i = 1; i < ring.length; i++) {
-      let lng = ring[i][0];
-      const prev = out[i - 1][0];
-      while (lng - prev >  180) lng -= 360;
-      while (prev - lng >  180) lng += 360;
-      out.push([lng, ring[i][1]]);
-    }
-    const mean = out.reduce((s, p) => s + p[0], 0) / out.length;
-    if (mean >  180) return out.map(p => [p[0] - 360, p[1]]);
-    if (mean < -180) return out.map(p => [p[0] + 360, p[1]]);
-    return out;
-  }
-  if (geom.type === 'Polygon')
-    return { ...geom, coordinates: geom.coordinates.map(fixRing) };
-  if (geom.type === 'MultiPolygon')
-    return { ...geom, coordinates: geom.coordinates.map(poly => poly.map(fixRing)) };
-  return geom;
-}
-
-function initMap() {
-  const mapEl = document.getElementById('map-container');
-  mapEl.innerHTML = '';
-
-  // maxBounds + worldCopyJump:false keeps the map to a single world
-  leafletMap = L.map('map-container', {
-    center: [20, -20],
-    zoom: 2,
-    minZoom: 2,
-    maxZoom: 8,
-    zoomControl: true,
-    worldCopyJump: false,
-    maxBounds: [[-90, -180], [90, 180]],
-    maxBoundsViscosity: 1.0
-  });
-
-  // No tile layer — draw all countries from topojson (no rivers, no sub-boundaries).
-  // For small islands, keep only the last (higher-res 50m) occurrence.
-  const SMALL_ISO = new Set(['028', '212', '659', '662', '585', '132']);
-  const seenSmall = new Set();
-  const mapFeatures = [];
-  for (let i = cachedGeoData.allFeatures.length - 1; i >= 0; i--) {
-    const f = cachedGeoData.allFeatures[i];
-    const iso = String(f.id).padStart(3, '0');
-    if (SMALL_ISO.has(iso)) {
-      if (seenSmall.has(iso)) continue;
-      seenSmall.add(iso);
-    }
-    mapFeatures.unshift({ ...f, geometry: fixMapGeometry(f.geometry) });
-  }
-
-  mapGeoJsonLayer = L.geoJSON({ type: 'FeatureCollection', features: mapFeatures }, {
-    style: mapPolyStyle,
-    onEachFeature(feature, layer) {
-      if (!feature._tcd) return;
-      layer.bindTooltip(() => mapTooltipContent(feature._tcd), {
-        sticky: true,
-        opacity: 1,
-        className: 'map-tooltip',
-        direction: 'top'
-      });
-      layer.on('click', () => openSidebar(feature._tcd));
-      layer.on('mouseover', function() {
-        if (!matchesFilters(feature._tcd)) return;
-        this.setStyle({ fillOpacity: 0.8, weight: feature._tcd.transfersOccurred ? 2.5 : 2 });
-        leafletMap.getContainer().style.cursor = 'pointer';
-      });
-      layer.on('mouseout', function() {
-        mapGeoJsonLayer.resetStyle(this);
-        leafletMap.getContainer().style.cursor = '';
-      });
-    }
-  }).addTo(leafletMap);
-}
 
 function greatCirclePoints(lat1, lng1, lat2, lng2) {
   const toR = d => d * Math.PI / 180;
@@ -1807,178 +1050,149 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
   return pts;
 }
 
-function mapPolyStyle(feature) {
-  // Non-TCD or filtered-out countries: solid land color (no tile layer underneath)
-  if (!feature._tcd || !matchesFilters(feature._tcd)) return {
-    fillColor: darkMode ? '#162030' : '#c0d4e0',
-    fillOpacity: 1,
-    color: darkMode ? '#0d1828' : '#9db8c8',
-    weight: 0.5
-  };
-  const confirmed = feature._tcd.transfersOccurred;
-  const selected  = feature._tcd.name === selectedName;
+function buildArcsGeoJSON() {
   return {
-    fillColor: confirmed ? '#f85149' : '#e3b341',
-    fillOpacity: selected ? 0.9 : 0.75,
-    color: confirmed ? '#ff6b60' : '#f0c840',
-    weight: selected ? 2.5 : 1.5
+    type: 'FeatureCollection',
+    features: COUNTRIES
+      .filter(c => c.transfersOccurred && matchesFilters(c))
+      .map(c => {
+        const pts = greatCirclePoints(USA.lat, USA.lng, c.lat, c.lng);
+        return {
+          type: 'Feature',
+          properties: { name: c.name },
+          geometry: { type: 'LineString', coordinates: pts.map(([lat, lng]) => [lng, lat]) }
+        };
+      })
   };
 }
 
-function mapTooltipContent(c) {
-  const color  = c.transfersOccurred ? '#f85149' : '#e3b341';
-  const status = c.transfersOccurred ? '● Transfers confirmed' : '○ Agreement only';
-  const bg     = darkMode ? 'rgba(13,17,23,0.93)'  : 'rgba(248,250,252,0.97)';
-  const border = darkMode ? '#21262d'               : '#d0d7de';
-  const title  = darkMode ? '#f0f6fc'               : '#24292f';
-  const hint   = darkMode ? '#484f58'               : '#8c949e';
-  return `<div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:8px 12px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;pointer-events:none;white-space:nowrap;">
-    <div style="font-size:15px;font-weight:700;color:${title};">${c.flag} ${c.name}</div>
-    <div style="font-size:12px;color:${color};margin-top:4px;">${status}</div>
-    <div style="font-size:11px;color:${hint};margin-top:3px;">Click to see details</div>
-  </div>`;
+// ──────────────────────────────────────────────
+// PHASE 4: filter state + matching logic (copied verbatim from index.html)
+// ──────────────────────────────────────────────
+function getTypeCode(c) {
+  const t = c.agreementType.toLowerCase();
+  if (t.includes('incarceration'))  return 'incarceration';
+  if (t.includes('asylum'))         return 'aca';
+  if (t.includes('hybrid'))         return 'hybrid';
+  if (t.includes('temporary'))      return 'temporary';
+  if (t.includes('removal'))        return 'removal';
+  return 'unknown';
+}
+function hasFunding(c) {
+  return !c.funding.startsWith('No direct') && !c.funding.startsWith('No financial') && c.funding !== 'Not applicable';
 }
 
-function drawMapArcs() {
-  mapArcs.forEach(a => leafletMap.removeLayer(a));
-  mapArcs = [];
-  COUNTRIES.filter(c => c.transfersOccurred && matchesFilters(c)).forEach(c => {
-    const pts = greatCirclePoints(USA.lat, USA.lng, c.lat, c.lng);
-    const arc = L.polyline(pts, {
-      color: 'rgba(248,81,73,0.55)',
-      weight: 1.5,
-      interactive: false,
-      className: 'map-arc'
-    }).addTo(leafletMap);
-    mapArcs.push(arc);
+const filters = { region: '', status: '', type: '', funding: '' };
+
+function matchesFilters(c) {
+  if (!c) return true;
+  if (filters.region   && NAME_TO_REGION[c.name] !== filters.region)           return false;
+  if (filters.status === 'confirmed' && !c.transfersOccurred)                   return false;
+  if (filters.status === 'pending'   &&  c.transfersOccurred)                   return false;
+  if (filters.type     && getTypeCode(c) !== filters.type)                      return false;
+  if (filters.funding === 'funded'   && !hasFunding(c))                         return false;
+  if (filters.funding === 'unfunded' &&  hasFunding(c))                         return false;
+  return true;
+}
+
+// Real implementations are assigned once map data loads (Phase 1's async
+// fetch); placeholders avoid errors if a pill/country-list item is used first.
+window.applyFiltersToMap = function() {};
+window.openSidebar = function() { console.warn('Map geometry still loading — try again in a moment.'); };
+
+let filterPanelOpen = false;
+
+function toggleFilterPanel() {
+  filterPanelOpen = !filterPanelOpen;
+  document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
+  document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
+  setTimeout(updateCountryListPos, 20);
+}
+
+function updateFilterCount() {
+  const n = Object.values(filters).filter(v => v !== '').length;
+  const el = document.getElementById('filter-count');
+  el.textContent = n;
+  el.style.display = n > 0 ? 'inline-block' : 'none';
+}
+
+function clearFilters() {
+  Object.keys(filters).forEach(k => filters[k] = '');
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.value === '');
+  });
+  updateFilterCount();
+  updateStats();
+  window.applyFiltersToMap();
+  buildCountryList();
+}
+
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    const value = btn.dataset.value;
+    document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    filters[group] = value;
+    updateFilterCount();
+    updateStats();
+    window.applyFiltersToMap();
+    buildCountryList();
+  });
+});
+
+// ──────────────────────────────────────────────
+// PHASE 5: header stats, region row, country list (copied verbatim from
+// index.html, except refreshPolygons() -> applyFiltersToMap())
+// ──────────────────────────────────────────────
+function updateStats() {
+  const visible = COUNTRIES.filter(matchesFilters);
+  const isFiltered = Object.values(filters).some(v => v !== '');
+
+  document.getElementById('stat-total').textContent = visible.length;
+  document.getElementById('stat-confirmed').textContent = visible.filter(c => c.transfersOccurred).length;
+  document.getElementById('stat-pending').textContent = visible.filter(c => !c.transfersOccurred).length;
+  document.getElementById('stat-total-label').textContent = isFiltered ? `of ${COUNTRIES.length} shown` : 'Countries';
+
+  const totalUSD = visible.reduce((s, c) => s + (c.fundingUSD || 0), 0);
+  const hasExtra = visible.some(c => c.fundingExtra || (hasFunding(c) && !c.fundingUSD));
+  const fundingEl = document.getElementById('stat-funding');
+  if (totalUSD > 0) {
+    const rounded = Math.round(totalUSD * 10) / 10;
+    const display = Number.isInteger(rounded) ? rounded : rounded.toFixed(1);
+    fundingEl.textContent = `$${display}M${hasExtra ? '+' : ''}`;
+  } else if (hasExtra) {
+    fundingEl.textContent = 'Reported';
+  } else {
+    fundingEl.textContent = '—';
+  }
+
+  const regionKeys = [
+    ['Americas', 'rl-americas', 'rb-americas'],
+    ['Africa',   'rl-africa',   'rb-africa'],
+    ['Europe',   'rl-europe',   'rb-europe'],
+    ['Asia & Pacific', 'rl-asia', 'rb-asia']
+  ];
+  regionKeys.forEach(([region, linkId, countId]) => {
+    const count = visible.filter(c => NAME_TO_REGION[c.name] === region).length;
+    const countEl = document.getElementById(countId);
+    const linkEl  = document.getElementById(linkId);
+    if (countEl) countEl.textContent = count;
+    if (linkEl)  linkEl.classList.toggle('active', filters.region === region);
   });
 }
 
-function refreshMapPolygons() {
-  if (!mapGeoJsonLayer) return;
-  mapGeoJsonLayer.setStyle(mapPolyStyle);
+function setRegionFilter(region) {
+  filters.region = filters.region === region ? '' : region;
+  document.querySelectorAll('.pill[data-group="region"]').forEach(p => {
+    p.classList.toggle('active', p.dataset.value === filters.region);
+  });
+  updateFilterCount();
+  updateStats();
+  window.applyFiltersToMap();
+  buildCountryList();
 }
 
-// ──────────────────────────────────────────────
-// SIDEBAR
-// ──────────────────────────────────────────────
-function openSidebar(country) {
-  selectedName = country.name;
-  refreshPolygons();
-
-  if (globe && viewMode === 'globe') {
-    globe.controls().autoRotate = false;
-    globe.pointOfView({ lat: country.lat, lng: country.lng, altitude: 1.9 }, 800);
-  }
-  if (leafletMap && viewMode === 'map') {
-    leafletMap.flyTo([country.lat, country.lng], 5, { duration: 0.9 });
-  }
-
-  document.getElementById('sidebar-flag').textContent = country.flag;
-  document.getElementById('sidebar-country-name').textContent = country.name;
-
-  const badge = document.getElementById('sidebar-transfer-badge');
-  badge.textContent = country.transfersOccurred ? 'Transfers Confirmed' : 'No Known Transfers';
-  badge.className = 'transfer-badge ' + (country.transfersOccurred ? 'badge-confirmed' : 'badge-pending');
-
-  const intlResponsesHtml = (country.intlResponses && country.intlResponses.length > 0)
-    ? country.intlResponses.map(r =>
-        `<div class="intl-response">
-          <div class="intl-response-meta">${r.date} &mdash; ${r.body}</div>
-          <div class="intl-response-text">${r.statement}</div>
-        </div>`).join('')
-    : null;
-
-  const harmsHtml = (country.harms && country.harms !== 'No known transfers')
-    ? `<div class="harms-box">${country.harms}</div>`
-    : `<div class="info-value" style="color:#484f58;font-style:italic;">No known transfers — no harms documented</div>`;
-
-  const usLegalHtml = country.usLegal === 'No legal challenges reported'
-    ? `<div class="info-value" style="color:#484f58;">None reported</div>`
-    : country.usLegal.split(/,\s*/).map(t => `<span class="legal-tag">${t.trim()}</span>`).join('');
-
-  const fundingClass = (!country.funding.startsWith('No direct') && country.funding !== 'No financial compensation reported') ? 'funding' : '';
-
-  document.getElementById('sidebar-content').innerHTML = `
-    <div class="info-block">
-      <div class="info-label">Agreement Type</div>
-      <div class="info-value">${country.agreementType}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">Agreement Format</div>
-      <div class="info-value">${country.format}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">Agreement Date</div>
-      <div class="info-value">${country.agreementDate}</div>
-    </div>
-    <hr class="divider">
-    <div class="info-block">
-      <div class="info-label">Transfer Dates</div>
-      <div class="info-value ${country.transfersOccurred ? 'highlight' : ''}">${country.transferDates}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">Mode of Transfer</div>
-      <div class="info-value">${country.mode}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">Detained on Arrival</div>
-      <div class="info-value">${country.detained}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">Transfer Cap</div>
-      <div class="info-value">${country.cap}</div>
-    </div>
-    <hr class="divider">
-    <div class="info-block">
-      <div class="info-label">U.S. Funding Provided</div>
-      <div class="info-value ${fundingClass}">${country.funding}</div>
-    </div>
-    <hr class="divider">
-    <div class="info-block">
-      <div class="info-label">U.S. Legal Challenges</div>
-      <div>${usLegalHtml}</div>
-    </div>
-    <div class="info-block">
-      <div class="info-label">International Legal Action</div>
-      <div class="info-value">${country.intlLegal}</div>
-    </div>
-    ${intlResponsesHtml ? `
-    <hr class="divider">
-    <div class="info-block">
-      <div class="info-label">International Responses</div>
-      ${intlResponsesHtml}
-    </div>` : ''}
-    <hr class="divider">
-    <div class="info-block">
-      <div class="info-label">Documented Harms</div>
-      ${harmsHtml}
-    </div>
-  `;
-
-  document.getElementById('sidebar').classList.add('open');
-}
-
-function closeSidebar() {
-  selectedName = null;
-  refreshPolygons();
-  document.getElementById('sidebar').classList.remove('open');
-  if (globe && viewMode === 'globe') {
-    globe.controls().autoRotate = true;
-    globe.pointOfView({ lat: 20, lng: -30, altitude: 2.2 }, 800);
-  }
-  if (leafletMap && viewMode === 'map') {
-    leafletMap.flyTo([20, -20], 2, { duration: 0.9 });
-  }
-}
-
-// ──────────────────────────────────────────────
-// FILTERS
-// ──────────────────────────────────────────────
-let filterPanelOpen = false;
-let docsPanelOpen = false;
-
-// ── LAYOUT: measure real header height and keep all panels/containers in sync ──
 function updateLayout() {
   const h = document.getElementById('header').offsetHeight;
   document.documentElement.style.setProperty('--header-h', h + 'px');
@@ -1994,10 +1208,6 @@ function updateCountryListPos() {
     const panelH = document.getElementById('filter-panel').offsetHeight;
     cl.style.top = (headerH + panelH + 8) + 'px';
     clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
-  } else if (docsPanelOpen) {
-    const panelH = document.getElementById('docs-panel').offsetHeight;
-    cl.style.top = (headerH + panelH + 8) + 'px';
-    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
   } else {
     cl.style.top = '';
     clBody.style.maxHeight = '';
@@ -2005,72 +1215,10 @@ function updateCountryListPos() {
 }
 
 updateLayout();
-// Re-measure after mobile browsers finish wrapping/rendering the header
 setTimeout(updateLayout, 100);
 setTimeout(updateLayout, 400);
 window.addEventListener('resize', updateLayout);
 
-function toggleFilterPanel() {
-  if (docsPanelOpen) {
-    docsPanelOpen = false;
-    document.getElementById('docs-panel').classList.remove('open');
-    document.getElementById('docs-toggle').classList.remove('active');
-  }
-  filterPanelOpen = !filterPanelOpen;
-  document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
-  document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
-  // Defer measurement until after CSS transition starts and panel has height
-  setTimeout(updateCountryListPos, 20);
-}
-
-function toggleDocsPanel() {
-  if (filterPanelOpen) {
-    filterPanelOpen = false;
-    document.getElementById('filter-panel').classList.remove('open');
-    document.getElementById('filter-toggle').classList.remove('active');
-  }
-  docsPanelOpen = !docsPanelOpen;
-  document.getElementById('docs-panel').classList.toggle('open', docsPanelOpen);
-  document.getElementById('docs-toggle').classList.toggle('active', docsPanelOpen);
-  setTimeout(updateCountryListPos, 20);
-}
-
-document.querySelectorAll('.pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const group = btn.dataset.group;
-    const value = btn.dataset.value;
-    // Deactivate siblings, activate this pill
-    document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    filters[group] = value;
-    updateFilterCount();
-    updateStats();
-    refreshPolygons();
-    buildCountryList();
-  });
-});
-
-function clearFilters() {
-  Object.keys(filters).forEach(k => filters[k] = '');
-  document.querySelectorAll('.pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.value === '');
-  });
-  updateFilterCount();
-  updateStats();
-  refreshPolygons();
-  buildCountryList();
-}
-
-function updateFilterCount() {
-  const n = Object.values(filters).filter(v => v !== '').length;
-  const el = document.getElementById('filter-count');
-  el.textContent = n;
-  el.style.display = n > 0 ? 'inline-block' : 'none';
-}
-
-// ──────────────────────────────────────────────
-// COUNTRY LIST
-// ──────────────────────────────────────────────
 function buildCountryList() {
   const body = document.getElementById('country-list-body');
   const sorted = status => COUNTRIES
@@ -2104,6 +1252,7 @@ function flyTo(name) {
   const country = DATA_BY_NAME[name];
   if (country) openSidebar(country);
 }
+window.flyTo = flyTo; // inline onclick in country-list items needs this global
 
 let countryListOpen = true;
 function toggleCountryList() {
@@ -2112,35 +1261,395 @@ function toggleCountryList() {
   document.getElementById('country-list-arrow').classList.toggle('closed', !countryListOpen);
 }
 
+updateStats();
 buildCountryList();
 
 // ──────────────────────────────────────────────
-// THEME TOGGLE
+// PHASE 6: globe projection toggle — replaces Globe.gl + the original's
+// dual-renderer setup (two full map instances shown/hidden) entirely.
+// One MapLibre map, two projections: this is the single biggest
+// simplification in the whole migration.
+//
+// `map` is declared just below (Phase 1 section) but not yet *evaluated*
+// at the point this function is defined -- fine, since switchView() is
+// only ever invoked later, from a button click, by which point the
+// `const map = new maplibregl.Map(...)` line has long since run.
+//
+// The flat map never tilts/rotates in the original (Leaflet has no
+// pitch/bearing concept); globe mode is the only place 3D orbiting makes
+// sense, so maxPitch is toggled alongside the projection rather than
+// left open all the time.
 // ──────────────────────────────────────────────
-function updateGlobeTheme() {
-  if (window._oceanCanvas && window._oceanCtx) {
-    window._oceanCtx.fillStyle = darkMode ? '#0a1828' : '#9abfd4';
-    window._oceanCtx.fillRect(0, 0, 64, 32);
-    if (globe) globe.globeImageUrl(window._oceanCanvas.toDataURL());
+let viewMode = 'map';
+function switchView(mode) {
+  if (mode === viewMode) return;
+  viewMode = mode;
+  document.getElementById('view-globe-btn').classList.toggle('active', mode === 'globe');
+  document.getElementById('view-map-btn').classList.toggle('active', mode === 'map');
+
+  if (mode === 'globe') {
+    map.setProjection({ type: 'globe' });
+    map.setMaxPitch(60);
+  } else {
+    map.setProjection({ type: 'mercator' });
+    map.setMaxPitch(0);
+    map.easeTo({ pitch: 0, bearing: 0, duration: 300 });
   }
-  if (globe) {
-    globe.backgroundColor(darkMode ? 'rgba(6,12,20,1)' : 'rgba(221,234,243,1)');
-    globe.polygonLabel(polygonLabelFn);
-  }
-  refreshPolygons();
 }
 
-function toggleTheme() {
-  darkMode = !darkMode;
-  document.body.classList.toggle('light-mode', !darkMode);
-  document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
-  localStorage.setItem('tcd-theme', darkMode ? 'dark' : 'light');
-  updateGlobeTheme();
-}
+// ──────────────────────────────────────────────
+// PHASE 1: bare map + geometry + data join
+// ──────────────────────────────────────────────
+// (Phase 1's on-page #status verification box was retired in Phase 5 --
+// the real header's stat-total now shows the live count instead. The
+// match/sanity check itself is unchanged, just console-only now.)
 
-// Sync button label with saved preference on load
-document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
+const map = new maplibregl.Map({
+  container: 'map',
+  style: {
+    version: 8,
+    sources: {},
+    layers: [
+      // Ocean/background color matches the original's #map-container /
+      // .leaflet-container dark and light values exactly.
+      { id: 'background', type: 'background', paint: { 'background-color': darkMode ? '#060c14' : '#ddeaf3' } }
+    ]
+  },
+  center: [20, 10],   // [lng, lat] -- MapLibre order, opposite of Leaflet
+  zoom: 2,
+  renderWorldCopies: false,
+  maxPitch: 0,
+});
 
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+map.on('load', async () => {
+  try {
+    const [topo110, topo50] = await Promise.all([
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json()),
+    ]);
+
+    const countries110 = topojson.feature(topo110, topo110.objects.countries);
+    const countries50  = topojson.feature(topo50,  topo50.objects.countries);
+
+    // Everything from 110m EXCEPT the small-island set; those come from 50m instead
+    // (110m omits most small island nations entirely, including several TCD countries).
+    const mainFeatures = countries110.features.filter(
+      f => !SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
+    );
+    const islandFeatures = countries50.features.filter(
+      f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
+    );
+    const allFeatures = [...mainFeatures, ...islandFeatures];
+
+    // Join geometry -> COUNTRIES data via ISO numeric code, with a name-based
+    // fallback for territories Natural Earth ships with no numeric ISO id
+    // (e.g. Kosovo — disputed status, id is undefined in world-atlas).
+    //
+    // `fid` (feature index) doubles as our stable feature-state id via
+    // `promoteId` below — deterministic, unlike relying on generateId's
+    // internal indexing, and lets us look up a feature's id by country
+    // name (NAME_TO_FEATURE_ID) for click-to-select handling in Phase 3.
+    const matchedNames = new Set();
+    const NAME_TO_FEATURE_ID = {};
+    allFeatures.forEach((feature, idx) => {
+      const neName = feature.properties && feature.properties.name;
+      const iso = String(feature.id).padStart(3, '0');
+      const name = ISO_TO_NAME[iso] || (neName && DATA_BY_NAME[neName] ? neName : null);
+      const data = name ? DATA_BY_NAME[name] : null;
+      if (data) { matchedNames.add(name); NAME_TO_FEATURE_ID[name] = idx; }
+      feature.properties = {
+        fid: idx,
+        iso,
+        name: name || null,
+        hasAgreement: !!data,
+        agreementType: data ? data.agreementType : null,
+        transfersOccurred: data ? data.transfersOccurred : false,
+        region: name ? (NAME_TO_REGION[name] || null) : null,
+      };
+    });
+
+    // Sanity check: did every COUNTRIES entry find a matching polygon?
+    const unmatched = COUNTRIES.map(c => c.name).filter(n => !matchedNames.has(n));
+
+    map.addSource('countries', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: allFeatures },
+      promoteId: 'fid',
+    });
+
+    // ── PHASE 2/4: choropleth styling — exact parity with the current
+    // Leaflet flat-map's mapPolyStyle() (dark theme; light-theme swap is
+    // Phase 8). A filtered-OUT country renders identically to an
+    // untracked one (the original's behavior: matchesFilters()===false
+    // gets the same dim background as !d._tcd, it never disappears).
+    // 'dimmed' feature-state carries that per the active filter state,
+    // updated by applyFiltersToMap() below whenever a pill is clicked.
+    //
+    // Precedence replicated faithfully from the original (including its
+    // one quirk: hovering a selected country shows hover style, not
+    // selected style — opacity/weight don't combine, by design there).
+    //   hasAgreement===false OR dimmed  -> solid dim background, fixed style
+    //   else:
+    //     hover    -> opacity 0.8, weight (confirmed ? 2.5 : 2)
+    //     selected -> opacity 0.9, weight 2.5
+    //     default  -> opacity 0.75, weight 1.5
+    //   stroke color never changes with hover/selected, only fill does.
+
+    const isBackground = ['any', ['!', ['get', 'hasAgreement']], ['boolean', ['feature-state', 'dimmed'], false]];
+
+    // Tracked-country colors (red/yellow, confirmed/agreement-only) never
+    // change between themes in the original -- only the untracked/
+    // filtered-out background color does. These two builders are the only
+    // theme-dependent piece of the choropleth.
+    function countryFillColorExpr(dark) {
+      return [
+        'case',
+        isBackground, dark ? '#162030' : '#c0d4e0',
+        ['==', ['get', 'transfersOccurred'], true], '#f85149',
+        /* agreement only */ '#e3b341'
+      ];
+    }
+    function countryLineColorExpr(dark) {
+      return [
+        'case',
+        isBackground, dark ? '#0d1828' : '#9db8c8',
+        ['==', ['get', 'transfersOccurred'], true], '#ff6b60',
+        /* agreement only */ '#f0c840'
+      ];
+    }
+
+    map.addLayer({
+      id: 'country-fills',
+      type: 'fill',
+      source: 'countries',
+      paint: {
+        'fill-color': countryFillColorExpr(darkMode),
+        'fill-opacity': [
+          'case',
+          isBackground, 1,
+          ['boolean', ['feature-state', 'hover'], false], 0.8,
+          ['boolean', ['feature-state', 'selected'], false], 0.9,
+          /* default */ 0.75
+        ]
+      }
+    });
+
+    map.addLayer({
+      id: 'country-borders',
+      type: 'line',
+      source: 'countries',
+      paint: {
+        'line-color': countryLineColorExpr(darkMode),
+        'line-width': [
+          'case',
+          isBackground, 0.5,
+          ['boolean', ['feature-state', 'hover'], false],
+            ['case', ['==', ['get', 'transfersOccurred'], true], 2.5, 2],
+          ['boolean', ['feature-state', 'selected'], false], 2.5,
+          /* default */ 1.5
+        ]
+      }
+    });
+
+    // ── PHASE 7: transfer arcs (static; see note above on why both
+    // projections get arcs even though the live site's flat map doesn't) ──
+    map.addSource('arcs', { type: 'geojson', data: buildArcsGeoJSON() });
+    map.addLayer({
+      id: 'transfer-arcs',
+      type: 'line',
+      source: 'arcs',
+      paint: {
+        'line-color': 'rgba(248,81,73,0.55)',  // matches the original drawMapArcs() color exactly
+        'line-width': 1.5
+      },
+      layout: { 'line-cap': 'round', 'line-join': 'round' }
+    });
+    // No hover/click handlers on this layer -- matches the original's
+    // `interactive: false` Leaflet polylines; arcs are purely visual.
+
+    // Apply the currently active filters to every tracked feature's
+    // 'dimmed' state, and rebuild the arcs to match. Exposed on window
+    // so the pill click handlers (defined at top-level scope, outside
+    // this load callback) can reach it.
+    window.applyFiltersToMap = function() {
+      allFeatures.forEach(feature => {
+        if (!feature.properties.hasAgreement) return; // already background, nothing to update
+        const country = DATA_BY_NAME[feature.properties.name];
+        const dimmed = !matchesFilters(country);
+        map.setFeatureState({ source: 'countries', id: feature.properties.fid }, { dimmed });
+      });
+      map.getSource('arcs').setData(buildArcsGeoJSON());
+    };
+
+    // ── PHASE 8: theme toggle — repaints the background and the
+    // untracked/filtered-out country color. Tracked-country red/yellow
+    // and the transfer arcs are theme-invariant in the original, so
+    // they're untouched here.
+    window.setMapTheme = function(dark) {
+      map.setPaintProperty('background', 'background-color', dark ? '#060c14' : '#ddeaf3');
+      map.setPaintProperty('country-fills', 'fill-color', countryFillColorExpr(dark));
+      map.setPaintProperty('country-borders', 'line-color', countryLineColorExpr(dark));
+    };
+
+    // Minimal hover feedback (full sidebar/click wiring is Phase 3)
+    let hoveredId = null;
+    map.on('mousemove', 'country-fills', (e) => {
+      if (e.features.length === 0) return;
+      if (hoveredId !== null) map.setFeatureState({ source: 'countries', id: hoveredId }, { hover: false });
+      hoveredId = e.features[0].id;
+      map.setFeatureState({ source: 'countries', id: hoveredId }, { hover: true });
+      map.getCanvas().style.cursor = e.features[0].properties.hasAgreement ? 'pointer' : '';
+    });
+    map.on('mouseleave', 'country-fills', () => {
+      if (hoveredId !== null) map.setFeatureState({ source: 'countries', id: hoveredId }, { hover: false });
+      hoveredId = null;
+      map.getCanvas().style.cursor = '';
+    });
+
+    // ── PHASE 3: click -> existing sidebar ──
+    // Matches the current site's behavior exactly: only the close button
+    // dismisses the sidebar (the live site has no click-empty-area-to-close
+    // handler, so this scaffold intentionally doesn't add one either).
+    let selectedName = null;
+    let selectedFeatureId = null;
+
+    function setSelected(name) {
+      if (selectedFeatureId !== null) {
+        map.setFeatureState({ source: 'countries', id: selectedFeatureId }, { selected: false });
+      }
+      selectedName = name;
+      selectedFeatureId = name ? NAME_TO_FEATURE_ID[name] : null;
+      if (selectedFeatureId !== undefined && selectedFeatureId !== null) {
+        map.setFeatureState({ source: 'countries', id: selectedFeatureId }, { selected: true });
+      }
+    }
+
+    function openSidebar(country) {
+      setSelected(country.name);
+
+      // NOTE coordinate order: COUNTRIES stores {lat, lng}; MapLibre's
+      // flyTo center wants [lng, lat] -- the opposite of Leaflet's
+      // flyTo([lat, lng]) used in the current site. Flipped explicitly here.
+      map.flyTo({ center: [country.lng, country.lat], zoom: 5, duration: 900 });
+
+      document.getElementById('sidebar-flag').textContent = country.flag;
+      document.getElementById('sidebar-country-name').textContent = country.name;
+
+      const badge = document.getElementById('sidebar-transfer-badge');
+      badge.textContent = country.transfersOccurred ? 'Transfers Confirmed' : 'No Known Transfers';
+      badge.className = 'transfer-badge ' + (country.transfersOccurred ? 'badge-confirmed' : 'badge-pending');
+
+      const intlResponsesHtml = (country.intlResponses && country.intlResponses.length > 0)
+        ? country.intlResponses.map(r =>
+            `<div class="intl-response">
+              <div class="intl-response-meta">${r.date} &mdash; ${r.body}</div>
+              <div class="intl-response-text">${r.statement}</div>
+            </div>`).join('')
+        : null;
+
+      const harmsHtml = (country.harms && country.harms !== 'No known transfers')
+        ? `<div class="harms-box">${country.harms}</div>`
+        : `<div class="info-value" style="color:#484f58;font-style:italic;">No known transfers — no harms documented</div>`;
+
+      const usLegalHtml = country.usLegal === 'No legal challenges reported'
+        ? `<div class="info-value" style="color:#484f58;">None reported</div>`
+        : country.usLegal.split(/,\s*/).map(t => `<span class="legal-tag">${t.trim()}</span>`).join('');
+
+      const fundingClass = (!country.funding.startsWith('No direct') && country.funding !== 'No financial compensation reported') ? 'funding' : '';
+
+      document.getElementById('sidebar-content').innerHTML = `
+        <div class="info-block">
+          <div class="info-label">Agreement Type</div>
+          <div class="info-value">${country.agreementType}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Agreement Format</div>
+          <div class="info-value">${country.format}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Agreement Date</div>
+          <div class="info-value">${country.agreementDate}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">Transfer Dates</div>
+          <div class="info-value ${country.transfersOccurred ? 'highlight' : ''}">${country.transferDates}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Mode of Transfer</div>
+          <div class="info-value">${country.mode}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Detained on Arrival</div>
+          <div class="info-value">${country.detained}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Transfer Cap</div>
+          <div class="info-value">${country.cap}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">U.S. Funding Provided</div>
+          <div class="info-value ${fundingClass}">${country.funding}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">U.S. Legal Challenges</div>
+          <div>${usLegalHtml}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">International Legal Action</div>
+          <div class="info-value">${country.intlLegal}</div>
+        </div>
+        ${intlResponsesHtml ? `
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">International Responses</div>
+          ${intlResponsesHtml}
+        </div>` : ''}
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">Documented Harms</div>
+          ${harmsHtml}
+        </div>
+      `;
+
+      document.getElementById('sidebar').classList.add('open');
+    }
+
+    function closeSidebar() {
+      setSelected(null);
+      document.getElementById('sidebar').classList.remove('open');
+      // Leaflet's flyTo([20, -20], 2) -> MapLibre order is [lng, lat] = [-20, 20].
+      map.flyTo({ center: [-20, 20], zoom: 2, duration: 900 });
+    }
+
+    // Exposed globally: closeSidebar for the sidebar's inline onclick, and
+    // openSidebar for flyTo() (Phase 5's country-list items), both defined
+    // at top-level scope outside this load callback's closure.
+    window.closeSidebar = closeSidebar;
+    window.openSidebar = openSidebar;
+
+    map.on('click', 'country-fills', (e) => {
+      if (e.features.length === 0) return;
+      const props = e.features[0].properties;
+      if (!props.hasAgreement || !props.name) return;
+      const country = DATA_BY_NAME[props.name];
+      if (!country) return;
+      openSidebar(country);
+    });
+
+    // ── Phase 1 sanity check (console-only since Phase 5; header shows live counts) ──
+    const trackedRendered = allFeatures.filter(f => f.properties.hasAgreement).length;
+    console.log('Geometry check — tracked countries rendered:', trackedRendered, '/ 35');
+    console.log('Unmatched COUNTRIES entries (should be empty):', unmatched);
+
+  } catch (err) {
+    console.error('Map geometry load error:', err);
+  }
+});
 </script>
 </body>
 </html>
