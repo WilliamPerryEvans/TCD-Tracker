@@ -28,11 +28,118 @@
   #status .ok   { color: #3fb950; }
   #status .warn { color: #e3b341; }
   #status .err  { color: #f85149; }
+
+  /* ── SIDEBAR (copied from index.html; --header-h not yet ported — Phase 5) ── */
+  #sidebar {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 380px;
+    background: rgba(13, 17, 23, 0.97);
+    backdrop-filter: blur(12px);
+    border-left: 1px solid #21262d;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  #sidebar-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    background: none; border: none;
+    color: #8b949e; font-size: 20px;
+    cursor: pointer; line-height: 1; padding: 4px;
+  }
+  #sidebar-close:hover { color: #f0f6fc; }
+
+  #sidebar-inner { padding: 20px; }
+
+  #sidebar-country-header {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 16px;
+  }
+
+  #sidebar-flag { font-size: 36px; margin-bottom: 8px; }
+  #sidebar-country-name { font-size: 20px; font-weight: 700; color: #f0f6fc; }
+
+  .transfer-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge-confirmed { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+  .badge-pending { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
+
+  .info-block { margin-bottom: 14px; }
+  .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #8b949e; margin-bottom: 4px; }
+  .info-value { font-size: 14px; color: #c9d1d9; line-height: 1.5; }
+  .info-value.highlight { color: #f85149; font-weight: 500; }
+  .info-value.funding { color: #3fb950; font-weight: 600; }
+
+  .harms-box {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px; color: #c9d1d9; line-height: 1.6;
+  }
+
+  .legal-tag {
+    display: inline-block;
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.25);
+    color: #58a6ff;
+    font-size: 12px; padding: 2px 8px;
+    border-radius: 4px; margin: 2px 2px 2px 0;
+  }
+
+  .divider { border: none; border-top: 1px solid #21262d; margin: 14px 0; }
+
+  .intl-response {
+    background: rgba(88,166,255,0.06);
+    border: 1px solid rgba(88,166,255,0.18);
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  .intl-response:last-child { margin-bottom: 0; }
+  .intl-response-meta { font-size: 11px; color: #58a6ff; font-weight: 600; margin-bottom: 3px; letter-spacing: 0.02em; }
+  .intl-response-text { font-size: 13px; color: #c9d1d9; line-height: 1.55; }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
+
+  #hint {
+    position: fixed; bottom: 24px; right: 24px;
+    z-index: 100; font-size: 12px; color: #484f58; text-align: right;
+  }
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="status"><div class="title">TCD Tracker — MapLibre scaffold</div><div id="status-body">Loading geometry…</div></div>
+
+<!-- SIDEBAR (markup copied verbatim from index.html) -->
+<div id="sidebar">
+  <button id="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
+  <div id="sidebar-inner">
+    <div id="sidebar-country-header">
+      <div id="sidebar-flag"></div>
+      <div id="sidebar-country-name"></div>
+      <div id="sidebar-transfer-badge"></div>
+    </div>
+    <div id="sidebar-content"></div>
+  </div>
+</div>
+
+<div id="hint">Click any highlighted country to see details</div>
 
 <script>
 // ──────────────────────────────────────────────
@@ -555,14 +662,21 @@ map.on('load', async () => {
     // Join geometry -> COUNTRIES data via ISO numeric code, with a name-based
     // fallback for territories Natural Earth ships with no numeric ISO id
     // (e.g. Kosovo — disputed status, id is undefined in world-atlas).
+    //
+    // `fid` (feature index) doubles as our stable feature-state id via
+    // `promoteId` below — deterministic, unlike relying on generateId's
+    // internal indexing, and lets us look up a feature's id by country
+    // name (NAME_TO_FEATURE_ID) for click-to-select handling in Phase 3.
     const matchedNames = new Set();
-    allFeatures.forEach(feature => {
+    const NAME_TO_FEATURE_ID = {};
+    allFeatures.forEach((feature, idx) => {
       const neName = feature.properties && feature.properties.name;
       const iso = String(feature.id).padStart(3, '0');
       const name = ISO_TO_NAME[iso] || (neName && DATA_BY_NAME[neName] ? neName : null);
       const data = name ? DATA_BY_NAME[name] : null;
-      if (data) matchedNames.add(name);
+      if (data) { matchedNames.add(name); NAME_TO_FEATURE_ID[name] = idx; }
       feature.properties = {
+        fid: idx,
         iso,
         name: name || null,
         hasAgreement: !!data,
@@ -578,7 +692,7 @@ map.on('load', async () => {
     map.addSource('countries', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: allFeatures },
-      generateId: true,
+      promoteId: 'fid',
     });
 
     // ── PHASE 2: choropleth styling — exact parity with the current
@@ -651,6 +765,136 @@ map.on('load', async () => {
       if (hoveredId !== null) map.setFeatureState({ source: 'countries', id: hoveredId }, { hover: false });
       hoveredId = null;
       map.getCanvas().style.cursor = '';
+    });
+
+    // ── PHASE 3: click -> existing sidebar ──
+    // Matches the current site's behavior exactly: only the close button
+    // dismisses the sidebar (the live site has no click-empty-area-to-close
+    // handler, so this scaffold intentionally doesn't add one either).
+    let selectedName = null;
+    let selectedFeatureId = null;
+
+    function setSelected(name) {
+      if (selectedFeatureId !== null) {
+        map.setFeatureState({ source: 'countries', id: selectedFeatureId }, { selected: false });
+      }
+      selectedName = name;
+      selectedFeatureId = name ? NAME_TO_FEATURE_ID[name] : null;
+      if (selectedFeatureId !== undefined && selectedFeatureId !== null) {
+        map.setFeatureState({ source: 'countries', id: selectedFeatureId }, { selected: true });
+      }
+    }
+
+    function openSidebar(country) {
+      setSelected(country.name);
+
+      // NOTE coordinate order: COUNTRIES stores {lat, lng}; MapLibre's
+      // flyTo center wants [lng, lat] -- the opposite of Leaflet's
+      // flyTo([lat, lng]) used in the current site. Flipped explicitly here.
+      map.flyTo({ center: [country.lng, country.lat], zoom: 5, duration: 900 });
+
+      document.getElementById('sidebar-flag').textContent = country.flag;
+      document.getElementById('sidebar-country-name').textContent = country.name;
+
+      const badge = document.getElementById('sidebar-transfer-badge');
+      badge.textContent = country.transfersOccurred ? 'Transfers Confirmed' : 'No Known Transfers';
+      badge.className = 'transfer-badge ' + (country.transfersOccurred ? 'badge-confirmed' : 'badge-pending');
+
+      const intlResponsesHtml = (country.intlResponses && country.intlResponses.length > 0)
+        ? country.intlResponses.map(r =>
+            `<div class="intl-response">
+              <div class="intl-response-meta">${r.date} &mdash; ${r.body}</div>
+              <div class="intl-response-text">${r.statement}</div>
+            </div>`).join('')
+        : null;
+
+      const harmsHtml = (country.harms && country.harms !== 'No known transfers')
+        ? `<div class="harms-box">${country.harms}</div>`
+        : `<div class="info-value" style="color:#484f58;font-style:italic;">No known transfers — no harms documented</div>`;
+
+      const usLegalHtml = country.usLegal === 'No legal challenges reported'
+        ? `<div class="info-value" style="color:#484f58;">None reported</div>`
+        : country.usLegal.split(/,\s*/).map(t => `<span class="legal-tag">${t.trim()}</span>`).join('');
+
+      const fundingClass = (!country.funding.startsWith('No direct') && country.funding !== 'No financial compensation reported') ? 'funding' : '';
+
+      document.getElementById('sidebar-content').innerHTML = `
+        <div class="info-block">
+          <div class="info-label">Agreement Type</div>
+          <div class="info-value">${country.agreementType}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Agreement Format</div>
+          <div class="info-value">${country.format}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Agreement Date</div>
+          <div class="info-value">${country.agreementDate}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">Transfer Dates</div>
+          <div class="info-value ${country.transfersOccurred ? 'highlight' : ''}">${country.transferDates}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Mode of Transfer</div>
+          <div class="info-value">${country.mode}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Detained on Arrival</div>
+          <div class="info-value">${country.detained}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Transfer Cap</div>
+          <div class="info-value">${country.cap}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">U.S. Funding Provided</div>
+          <div class="info-value ${fundingClass}">${country.funding}</div>
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">U.S. Legal Challenges</div>
+          <div>${usLegalHtml}</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">International Legal Action</div>
+          <div class="info-value">${country.intlLegal}</div>
+        </div>
+        ${intlResponsesHtml ? `
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">International Responses</div>
+          ${intlResponsesHtml}
+        </div>` : ''}
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">Documented Harms</div>
+          ${harmsHtml}
+        </div>
+      `;
+
+      document.getElementById('sidebar').classList.add('open');
+    }
+
+    function closeSidebar() {
+      setSelected(null);
+      document.getElementById('sidebar').classList.remove('open');
+      // Leaflet's flyTo([20, -20], 2) -> MapLibre order is [lng, lat] = [-20, 20].
+      map.flyTo({ center: [-20, 20], zoom: 2, duration: 900 });
+    }
+
+    // Exposed globally so the sidebar's inline onclick="closeSidebar()" can reach it.
+    window.closeSidebar = closeSidebar;
+
+    map.on('click', 'country-fills', (e) => {
+      if (e.features.length === 0) return;
+      const props = e.features[0].properties;
+      if (!props.hasAgreement || !props.name) return;
+      const country = DATA_BY_NAME[props.name];
+      if (!country) return;
+      openSidebar(country);
     });
 
     // ── Phase 1 verification readout ──
