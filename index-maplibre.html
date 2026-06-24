@@ -359,6 +359,55 @@
     margin-left: 4px;
     display: none;
   }
+
+  /* ── RESPONSIVE BREAKPOINTS (copied from index.html; #docs-toggle/
+       #docs-panel/.docs-grid rules omitted -- not built in this version) ── */
+  @media (max-width: 900px) {
+    #header { gap: 12px; padding: 10px 16px; }
+    #source-line { display: none; }
+    #stats-bar { gap: 14px; }
+  }
+
+  /* ── Large phone (≤680px): full-width sidebar, compact header ── */
+  @media (max-width: 680px) {
+    #header { gap: 8px; padding: 8px 12px; }
+    #header-title h1 { font-size: 14px; }
+    #header-title p, #region-row { display: none; }
+
+    #stats-bar { gap: 10px; }
+    .stat-value { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+
+    #filter-toggle, #theme-toggle { font-size: 11px; padding: 4px 9px; }
+
+    /* Sidebar spans full width so it's actually usable */
+    #sidebar { width: 100vw; border-left: none; }
+
+    /* Panels: cap height and scroll so they don't bury the map */
+    #filter-panel { max-height: 55vh; overflow-y: auto; }
+
+    /* Country list: a bit narrower */
+    #country-list { width: 175px; }
+    .cl-item { font-size: 12px; padding: 4px 10px; }
+  }
+
+  /* ── Small phone (≤440px): hide country list, ultra-compact ── */
+  @media (max-width: 440px) {
+    #header-title { min-width: 120px; }
+    #header-title h1 { font-size: 13px; }
+
+    #stats-bar { gap: 8px; }
+    .stat-value { font-size: 16px; }
+    .stat-label { font-size: 9px; }
+
+    #[redacted]-logo { height: 24px; }
+    #filter-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
+
+    /* Country list stays collapsed (JS handles it) but remains tappable */
+    #country-list { width: 160px; }
+
+    #hint { display: none; }
+  }
 </style>
 </head>
 <body>
