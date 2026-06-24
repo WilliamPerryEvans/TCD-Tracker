@@ -15,8 +15,10 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body, #map { height: 100%; width: 100%; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a1a; }
-  #map { background: #0a0a1a; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #060c14; color: #e6edf3; }
+  #map { background: #060c14; }
+  body.light-mode { background: #eef2f7; color: #24292f; }
+  body.light-mode #map { background: #ddeaf3; }
 
   /* ── SIDEBAR (copied from index.html) ── */
   #sidebar {
@@ -161,6 +163,84 @@
   .view-btn:hover { background: rgba(88,166,255,0.1); color: #c9d1d9; }
   .view-btn.active { background: rgba(88,166,255,0.18); color: #58a6ff; }
   .view-btn:not(:last-child) { border-right: 1px solid rgba(88,166,255,0.25); }
+
+  /* ── THEME TOGGLE BUTTON (copied from index.html) ── */
+  #theme-toggle {
+    background: rgba(139,148,158,0.1);
+    border: 1px solid rgba(139,148,158,0.25);
+    color: #8b949e;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.2s;
+  }
+  #theme-toggle:hover { background: rgba(139,148,158,0.2); color: #c9d1d9; }
+
+  /* ── LIGHT MODE OVERRIDES (copied from index.html; docs-panel and
+       Leaflet-specific rules omitted -- not applicable/not built yet) ── */
+  #header-title h1 { color: #f0f6fc; }
+  body.light-mode #header { background: rgba(255,255,255,0.92); border-bottom-color: #d0d7de; }
+  body.light-mode #header-title h1 { color: #24292f; }
+  body.light-mode #header-title p  { color: #57606a; }
+  body.light-mode .stat-label      { color: #57606a; }
+  body.light-mode #source-line     { color: #8c949e; }
+  body.light-mode .region-link     { color: #b0bac4; }
+  body.light-mode .region-link:hover { color: #24292f; }
+  body.light-mode .region-link.active { color: #0969da; }
+  body.light-mode .region-sep      { color: #d0d7de; }
+
+  body.light-mode #theme-toggle { background: rgba(87,96,106,0.08); border-color: rgba(87,96,106,0.2); color: #57606a; }
+  body.light-mode #theme-toggle:hover { background: rgba(87,96,106,0.15); color: #24292f; }
+
+  body.light-mode #filter-toggle { background: rgba(9,105,218,0.07); border-color: rgba(9,105,218,0.2); color: #0969da; }
+  body.light-mode #filter-toggle:hover  { background: rgba(9,105,218,0.13); }
+  body.light-mode #filter-toggle.active { background: rgba(9,105,218,0.17); border-color: #0969da; }
+
+  body.light-mode #sidebar { background: rgba(255,255,255,0.97); border-left-color: #d0d7de; }
+  body.light-mode #sidebar-close      { color: #57606a; }
+  body.light-mode #sidebar-close:hover { color: #24292f; }
+  body.light-mode #sidebar-country-name { color: #24292f; }
+  body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
+  body.light-mode .info-label         { color: #57606a; }
+  body.light-mode .info-value         { color: #424a53; }
+  body.light-mode .harms-box          { background: rgba(248,81,73,0.04); color: #424a53; }
+  body.light-mode .divider            { border-top-color: #d0d7de; }
+  body.light-mode .intl-response      { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.18); }
+  body.light-mode .intl-response-meta { color: #0969da; }
+  body.light-mode .intl-response-text { color: #424a53; }
+  body.light-mode #sidebar::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+  body.light-mode #filter-panel { background: rgba(255,255,255,0.97); border-bottom-color: #d0d7de; }
+  body.light-mode .filter-label { color: #57606a; }
+  body.light-mode .pill {
+    background: rgba(208,215,222,0.4); border-color: #d0d7de; color: #57606a;
+  }
+  body.light-mode .pill:hover   { border-color: #0969da; color: #24292f; }
+  body.light-mode .pill.active  { background: rgba(9,105,218,0.1); border-color: #0969da; color: #0969da; }
+  body.light-mode .pill.active.red    { background: rgba(248,81,73,0.1);  border-color: #f85149; color: #f85149; }
+  body.light-mode .pill.active.orange { background: rgba(210,140,30,0.1); border-color: #bf8700; color: #bf8700; }
+  body.light-mode .pill.active.green  { background: rgba(26,127,55,0.1);  border-color: #1a7f37; color: #1a7f37; }
+  body.light-mode #filter-clear { border-color: #d0d7de; color: #8c949e; }
+  body.light-mode #filter-clear:hover { border-color: #f85149; color: #f85149; }
+
+  body.light-mode #country-list { background: rgba(255,255,255,0.92); border-color: #d0d7de; }
+  body.light-mode #country-list-header { color: #57606a; border-bottom-color: #d0d7de; }
+  body.light-mode #country-list-header:hover { color: #24292f; }
+  body.light-mode #country-list-subhead { color: #8c949e; border-bottom-color: #d0d7de; }
+  body.light-mode .cl-section.confirmed { color: #cf222e; }
+  body.light-mode .cl-section.pending   { color: #bf8700; border-top-color: #d0d7de; }
+  body.light-mode .cl-item             { color: #424a53; }
+  body.light-mode .cl-item:hover       { background: rgba(9,105,218,0.07); color: #24292f; }
+  body.light-mode #country-list-body::-webkit-scrollbar-thumb { background: #d0d7de; }
+
+  body.light-mode #view-toggle { border-color: rgba(9,105,218,0.25); }
+  body.light-mode .view-btn { color: #57606a; }
+  body.light-mode .view-btn:hover { background: rgba(9,105,218,0.08); color: #24292f; }
+  body.light-mode .view-btn.active { background: rgba(9,105,218,0.14); color: #0969da; }
+  body.light-mode .view-btn:not(:last-child) { border-right-color: rgba(9,105,218,0.25); }
+
+  body.light-mode #hint { color: #8c949e; }
 
   /* ── COUNTRY LIST (copied from index.html) ── */
   #country-list {
@@ -311,6 +391,7 @@
     <button class="view-btn active" id="view-map-btn" onclick="switchView('map')">Map</button>
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
+  <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
@@ -859,6 +940,27 @@ Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO
 const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
 
 // ──────────────────────────────────────────────
+// PHASE 8: theme state (copied verbatim from index.html). Declared this
+// early so the map constructor and initial layer paint below can read
+// the persisted preference from the very first paint, not just on toggle.
+// ──────────────────────────────────────────────
+let darkMode = localStorage.getItem('tcd-theme') !== 'light';
+if (!darkMode) document.body.classList.add('light-mode');
+document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
+
+// Real implementation assigned once map data loads; placeholder avoids
+// errors if the theme button is clicked before geometry finishes loading.
+window.setMapTheme = function() {};
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.body.classList.toggle('light-mode', !darkMode);
+  document.getElementById('theme-toggle').textContent = darkMode ? '☀ Light' : '🌙 Dark';
+  localStorage.setItem('tcd-theme', darkMode ? 'dark' : 'light');
+  window.setMapTheme(darkMode);
+}
+
+// ──────────────────────────────────────────────
 // PHASE 7: transfer arcs (US -> country) — static only, ported verbatim
 // from index.html's greatCirclePoints()/USA constant. Note this function
 // returns [lat, lng] pairs (the original's Leaflet-oriented convention,
@@ -1159,7 +1261,9 @@ const map = new maplibregl.Map({
     version: 8,
     sources: {},
     layers: [
-      { id: 'background', type: 'background', paint: { 'background-color': '#0a0a1a' } }
+      // Ocean/background color matches the original's #map-container /
+      // .leaflet-container dark and light values exactly.
+      { id: 'background', type: 'background', paint: { 'background-color': darkMode ? '#060c14' : '#ddeaf3' } }
     ]
   },
   center: [20, 10],   // [lng, lat] -- MapLibre order, opposite of Leaflet
@@ -1246,17 +1350,33 @@ map.on('load', async () => {
 
     const isBackground = ['any', ['!', ['get', 'hasAgreement']], ['boolean', ['feature-state', 'dimmed'], false]];
 
+    // Tracked-country colors (red/yellow, confirmed/agreement-only) never
+    // change between themes in the original -- only the untracked/
+    // filtered-out background color does. These two builders are the only
+    // theme-dependent piece of the choropleth.
+    function countryFillColorExpr(dark) {
+      return [
+        'case',
+        isBackground, dark ? '#162030' : '#c0d4e0',
+        ['==', ['get', 'transfersOccurred'], true], '#f85149',
+        /* agreement only */ '#e3b341'
+      ];
+    }
+    function countryLineColorExpr(dark) {
+      return [
+        'case',
+        isBackground, dark ? '#0d1828' : '#9db8c8',
+        ['==', ['get', 'transfersOccurred'], true], '#ff6b60',
+        /* agreement only */ '#f0c840'
+      ];
+    }
+
     map.addLayer({
       id: 'country-fills',
       type: 'fill',
       source: 'countries',
       paint: {
-        'fill-color': [
-          'case',
-          isBackground, '#162030',                                            // untracked or filtered-out (dark theme)
-          ['==', ['get', 'transfersOccurred'], true], '#f85149',               // red — transfers confirmed
-          /* agreement only */ '#e3b341'                                       // yellow
-        ],
+        'fill-color': countryFillColorExpr(darkMode),
         'fill-opacity': [
           'case',
           isBackground, 1,
@@ -1272,12 +1392,7 @@ map.on('load', async () => {
       type: 'line',
       source: 'countries',
       paint: {
-        'line-color': [
-          'case',
-          isBackground, '#0d1828',                                            // untracked or filtered-out stroke
-          ['==', ['get', 'transfersOccurred'], true], '#ff6b60',               // light red
-          /* agreement only */ '#f0c840'                                       // light gold
-        ],
+        'line-color': countryLineColorExpr(darkMode),
         'line-width': [
           'case',
           isBackground, 0.5,
@@ -1317,6 +1432,16 @@ map.on('load', async () => {
         map.setFeatureState({ source: 'countries', id: feature.properties.fid }, { dimmed });
       });
       map.getSource('arcs').setData(buildArcsGeoJSON());
+    };
+
+    // ── PHASE 8: theme toggle — repaints the background and the
+    // untracked/filtered-out country color. Tracked-country red/yellow
+    // and the transfer arcs are theme-invariant in the original, so
+    // they're untouched here.
+    window.setMapTheme = function(dark) {
+      map.setPaintProperty('background', 'background-color', dark ? '#060c14' : '#ddeaf3');
+      map.setPaintProperty('country-fills', 'fill-color', countryFillColorExpr(dark));
+      map.setPaintProperty('country-borders', 'line-color', countryLineColorExpr(dark));
     };
 
     // Minimal hover feedback (full sidebar/click wiring is Phase 3)
