@@ -120,11 +120,140 @@
     position: fixed; bottom: 24px; right: 24px;
     z-index: 100; font-size: 12px; color: #484f58; text-align: right;
   }
+
+  /* ── FILTER TOGGLE + PANEL (copied from index.html; real header position lands Phase 5) ── */
+  #phase4-toolbar { position: fixed; top: 12px; left: 350px; z-index: 96; }
+
+  #filter-toggle {
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.25);
+    color: #58a6ff;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  #filter-toggle:hover { background: rgba(88,166,255,0.2); }
+  #filter-toggle.active { background: rgba(88,166,255,0.25); border-color: #58a6ff; }
+
+  #filter-panel {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 95;
+    background: rgba(10, 15, 24, 0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #21262d;
+    padding: 10px 20px 14px;
+    transform: translateY(-110%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #filter-panel.open { transform: translateY(0); }
+
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .filter-row:last-child { margin-bottom: 0; }
+
+  .filter-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #8b949e; min-width: 70px; flex-shrink: 0;
+  }
+
+  .filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .pill {
+    background: rgba(33, 38, 45, 0.8);
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .pill.active { background: rgba(88,166,255,0.15); border-color: #58a6ff; color: #58a6ff; font-weight: 600; }
+  .pill.active.red    { background: rgba(248,81,73,0.15);  border-color: #f85149; color: #f85149; }
+  .pill.active.orange  { background: rgba(227,179,65,0.15); border-color: #e3b341; color: #e3b341; }
+  .pill.active.green  { background: rgba(63,185,80,0.15);  border-color: #3fb950; color: #3fb950; }
+
+  #filter-clear {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #30363d;
+    color: #484f58;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #filter-clear:hover { border-color: #f85149; color: #f85149; }
+
+  #filter-count {
+    display: inline-block;
+    background: #58a6ff;
+    color: #0d1117;
+    font-size: 10px; font-weight: 700;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    text-align: center; line-height: 16px;
+    margin-left: 4px;
+    display: none;
+  }
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="status"><div class="title">TCD Tracker — MapLibre scaffold</div><div id="status-body">Loading geometry…</div></div>
+
+<!-- PHASE 4: filter toggle button -- temporary standalone placement.
+     Real header (stats bar, region row, docs/theme buttons) lands in Phase 5;
+     this button will move into that header then, same id/behavior. -->
+<div id="phase4-toolbar">
+  <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
+</div>
+
+<!-- FILTER PANEL (markup copied verbatim from index.html) -->
+<div id="filter-panel">
+  <div class="filter-row">
+    <span class="filter-label">Region</span>
+    <div class="filter-pills">
+      <button class="pill active" data-group="region" data-value="">All</button>
+      <button class="pill" data-group="region" data-value="Americas">Americas</button>
+      <button class="pill" data-group="region" data-value="Africa">Africa</button>
+      <button class="pill" data-group="region" data-value="Europe">Europe</button>
+      <button class="pill" data-group="region" data-value="Asia &amp; Pacific">Asia &amp; Pacific</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Status</span>
+    <div class="filter-pills">
+      <button class="pill active" data-group="status" data-value="">All</button>
+      <button class="pill red" data-group="status" data-value="confirmed">Confirmed Transfers</button>
+      <button class="pill orange" data-group="status" data-value="pending">Agreement Only</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Agreement</span>
+    <div class="filter-pills">
+      <button class="pill active" data-group="type" data-value="">All</button>
+      <button class="pill" data-group="type" data-value="removal">Removal</button>
+      <button class="pill" data-group="type" data-value="aca">Asylum Cooperative</button>
+      <button class="pill" data-group="type" data-value="incarceration">Incarceration</button>
+      <button class="pill" data-group="type" data-value="hybrid">Hybrid</button>
+      <button class="pill" data-group="type" data-value="temporary">Temporary</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Funding</span>
+    <div class="filter-pills">
+      <button class="pill active" data-group="funding" data-value="">All</button>
+      <button class="pill green" data-group="funding" data-value="funded">U.S. Funded</button>
+      <button class="pill" data-group="funding" data-value="unfunded">No Funding Reported</button>
+    </div>
+    <button id="filter-clear" onclick="clearFilters()">&#x2715; Clear all</button>
+  </div>
+</div>
 
 <!-- SIDEBAR (markup copied verbatim from index.html) -->
 <div id="sidebar">
@@ -618,6 +747,74 @@ Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO
 const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
 
 // ──────────────────────────────────────────────
+// PHASE 4: filter state + matching logic (copied verbatim from index.html)
+// ──────────────────────────────────────────────
+function getTypeCode(c) {
+  const t = c.agreementType.toLowerCase();
+  if (t.includes('incarceration'))  return 'incarceration';
+  if (t.includes('asylum'))         return 'aca';
+  if (t.includes('hybrid'))         return 'hybrid';
+  if (t.includes('temporary'))      return 'temporary';
+  if (t.includes('removal'))        return 'removal';
+  return 'unknown';
+}
+function hasFunding(c) {
+  return !c.funding.startsWith('No direct') && !c.funding.startsWith('No financial') && c.funding !== 'Not applicable';
+}
+
+const filters = { region: '', status: '', type: '', funding: '' };
+
+function matchesFilters(c) {
+  if (!c) return true;
+  if (filters.region   && NAME_TO_REGION[c.name] !== filters.region)           return false;
+  if (filters.status === 'confirmed' && !c.transfersOccurred)                   return false;
+  if (filters.status === 'pending'   &&  c.transfersOccurred)                   return false;
+  if (filters.type     && getTypeCode(c) !== filters.type)                      return false;
+  if (filters.funding === 'funded'   && !hasFunding(c))                         return false;
+  if (filters.funding === 'unfunded' &&  hasFunding(c))                         return false;
+  return true;
+}
+
+// Real implementation is assigned once map data loads (Phase 1's async
+// fetch); a no-op placeholder avoids errors if a pill is clicked first.
+window.applyFiltersToMap = function() {};
+
+function toggleFilterPanel() {
+  filterPanelOpen = !filterPanelOpen;
+  document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
+  document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
+}
+let filterPanelOpen = false;
+
+function updateFilterCount() {
+  const n = Object.values(filters).filter(v => v !== '').length;
+  const el = document.getElementById('filter-count');
+  el.textContent = n;
+  el.style.display = n > 0 ? 'inline-block' : 'none';
+}
+
+function clearFilters() {
+  Object.keys(filters).forEach(k => filters[k] = '');
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.value === '');
+  });
+  updateFilterCount();
+  window.applyFiltersToMap();
+}
+
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    const value = btn.dataset.value;
+    document.querySelectorAll(`.pill[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    filters[group] = value;
+    updateFilterCount();
+    window.applyFiltersToMap();
+  });
+});
+
+// ──────────────────────────────────────────────
 // PHASE 1: bare map + geometry + data join
 // ──────────────────────────────────────────────
 const statusBody = document.getElementById('status-body');
@@ -695,19 +892,25 @@ map.on('load', async () => {
       promoteId: 'fid',
     });
 
-    // ── PHASE 2: choropleth styling — exact parity with the current
-    // Leaflet flat-map's mapPolyStyle() (dark theme; light-theme swap
-    // and live filter-dimming are wired in Phase 8 / Phase 4).
+    // ── PHASE 2/4: choropleth styling — exact parity with the current
+    // Leaflet flat-map's mapPolyStyle() (dark theme; light-theme swap is
+    // Phase 8). A filtered-OUT country renders identically to an
+    // untracked one (the original's behavior: matchesFilters()===false
+    // gets the same dim background as !d._tcd, it never disappears).
+    // 'dimmed' feature-state carries that per the active filter state,
+    // updated by applyFiltersToMap() below whenever a pill is clicked.
     //
     // Precedence replicated faithfully from the original (including its
     // one quirk: hovering a selected country shows hover style, not
     // selected style — opacity/weight don't combine, by design there).
-    //   hasAgreement === false      -> solid dim background, fixed style
-    //   hasAgreement === true:
+    //   hasAgreement===false OR dimmed  -> solid dim background, fixed style
+    //   else:
     //     hover    -> opacity 0.8, weight (confirmed ? 2.5 : 2)
-    //     selected -> opacity 0.9, weight 2.5      (selected wiring: Phase 3)
+    //     selected -> opacity 0.9, weight 2.5
     //     default  -> opacity 0.75, weight 1.5
     //   stroke color never changes with hover/selected, only fill does.
+
+    const isBackground = ['any', ['!', ['get', 'hasAgreement']], ['boolean', ['feature-state', 'dimmed'], false]];
 
     map.addLayer({
       id: 'country-fills',
@@ -716,13 +919,13 @@ map.on('load', async () => {
       paint: {
         'fill-color': [
           'case',
-          ['!', ['get', 'hasAgreement']], '#162030',                          // untracked background (dark theme)
+          isBackground, '#162030',                                            // untracked or filtered-out (dark theme)
           ['==', ['get', 'transfersOccurred'], true], '#f85149',               // red — transfers confirmed
           /* agreement only */ '#e3b341'                                       // yellow
         ],
         'fill-opacity': [
           'case',
-          ['!', ['get', 'hasAgreement']], 1,
+          isBackground, 1,
           ['boolean', ['feature-state', 'hover'], false], 0.8,
           ['boolean', ['feature-state', 'selected'], false], 0.9,
           /* default */ 0.75
@@ -737,13 +940,13 @@ map.on('load', async () => {
       paint: {
         'line-color': [
           'case',
-          ['!', ['get', 'hasAgreement']], '#0d1828',                          // untracked stroke (dark theme)
+          isBackground, '#0d1828',                                            // untracked or filtered-out stroke
           ['==', ['get', 'transfersOccurred'], true], '#ff6b60',               // light red
           /* agreement only */ '#f0c840'                                       // light gold
         ],
         'line-width': [
           'case',
-          ['!', ['get', 'hasAgreement']], 0.5,
+          isBackground, 0.5,
           ['boolean', ['feature-state', 'hover'], false],
             ['case', ['==', ['get', 'transfersOccurred'], true], 2.5, 2],
           ['boolean', ['feature-state', 'selected'], false], 2.5,
@@ -751,6 +954,18 @@ map.on('load', async () => {
         ]
       }
     });
+
+    // Apply the currently active filters to every tracked feature's
+    // 'dimmed' state. Exposed on window so the pill click handlers
+    // (defined at top-level scope, outside this load callback) can reach it.
+    window.applyFiltersToMap = function() {
+      allFeatures.forEach(feature => {
+        if (!feature.properties.hasAgreement) return; // already background, nothing to update
+        const country = DATA_BY_NAME[feature.properties.name];
+        const dimmed = !matchesFilters(country);
+        map.setFeatureState({ source: 'countries', id: feature.properties.fid }, { dimmed });
+      });
+    };
 
     // Minimal hover feedback (full sidebar/click wiring is Phase 3)
     let hoveredId = null;
