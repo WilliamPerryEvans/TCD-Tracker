@@ -1377,6 +1377,11 @@ map.on('load', async () => {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: allFeatures },
       promoteId: 'fid',
+      // Larger buffer reduces gaps between this source's internal vector
+      // tiles for big/complex polygons (seen as thin seam lines, e.g.
+      // across India/Bhutan) -- default is 128.
+      buffer: 512,
+      tolerance: 0,
     });
 
     // ── PHASE 2/4: choropleth styling — exact parity with the current
@@ -1432,7 +1437,12 @@ map.on('load', async () => {
           ['boolean', ['feature-state', 'hover'], false], 0.8,
           ['boolean', ['feature-state', 'selected'], false], 0.9,
           /* default */ 0.75
-        ]
+        ],
+        // Antialiasing blends edge pixels independently per internal vector
+        // tile, which can leave faint seam lines visible where adjacent
+        // tiles meet (large polygons like India/Bhutan split across tiles).
+        // Off trades slightly harder edges for no seams.
+        'fill-antialias': false
       }
     });
 
