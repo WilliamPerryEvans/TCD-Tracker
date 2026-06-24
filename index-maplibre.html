@@ -859,6 +859,63 @@ Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO
 const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
 
 // ──────────────────────────────────────────────
+// PHASE 7: transfer arcs (US -> country) — static only, ported verbatim
+// from index.html's greatCirclePoints()/USA constant. Note this function
+// returns [lat, lng] pairs (the original's Leaflet-oriented convention,
+// kept as-is here); flipped to [lng, lat] at the GeoJSON-building call
+// site below, same coordinate-order discipline as Phase 3.
+//
+// PARITY NOTE: checked the live site and drawMapArcs() (the flat-map
+// arc renderer) is dead code -- it's defined but never actually called
+// anywhere, so the production Map view currently shows NO arcs at all;
+// arcs only render on the Globe view (animated, via Globe.gl). That
+// looks like an oversight rather than a deliberate choice, so this
+// migration adds static arcs to BOTH projections rather than
+// reproducing the gap. Animated dashing is intentionally skipped per
+// instruction -- low priority right now; static arcs render in both
+// map and globe modes.
+// ──────────────────────────────────────────────
+const USA = { lat: 38.9, lng: -77.0 };
+
+function greatCirclePoints(lat1, lng1, lat2, lng2) {
+  const toR = d => d * Math.PI / 180;
+  const toD = r => r * 180 / Math.PI;
+  const φ1 = toR(lat1), λ1 = toR(lng1), φ2 = toR(lat2), λ2 = toR(lng2);
+  const d = 2 * Math.asin(Math.sqrt(
+    Math.pow(Math.sin((φ2 - φ1) / 2), 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.pow(Math.sin((λ2 - λ1) / 2), 2)
+  ));
+  if (d < 0.001) return [[lat1, lng1], [lat2, lng2]];
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const f = i / 60;
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
+    const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
+    const z = A * Math.sin(φ1) + B * Math.sin(φ2);
+    pts.push([toD(Math.atan2(z, Math.sqrt(x * x + y * y))), toD(Math.atan2(y, x))]);
+  }
+  return pts;
+}
+
+function buildArcsGeoJSON() {
+  return {
+    type: 'FeatureCollection',
+    features: COUNTRIES
+      .filter(c => c.transfersOccurred && matchesFilters(c))
+      .map(c => {
+        const pts = greatCirclePoints(USA.lat, USA.lng, c.lat, c.lng);
+        return {
+          type: 'Feature',
+          properties: { name: c.name },
+          geometry: { type: 'LineString', coordinates: pts.map(([lat, lng]) => [lng, lat]) }
+        };
+      })
+  };
+}
+
+// ──────────────────────────────────────────────
 // PHASE 4: filter state + matching logic (copied verbatim from index.html)
 // ──────────────────────────────────────────────
 function getTypeCode(c) {
@@ -1232,9 +1289,26 @@ map.on('load', async () => {
       }
     });
 
+    // ── PHASE 7: transfer arcs (static; see note above on why both
+    // projections get arcs even though the live site's flat map doesn't) ──
+    map.addSource('arcs', { type: 'geojson', data: buildArcsGeoJSON() });
+    map.addLayer({
+      id: 'transfer-arcs',
+      type: 'line',
+      source: 'arcs',
+      paint: {
+        'line-color': 'rgba(248,81,73,0.55)',  // matches the original drawMapArcs() color exactly
+        'line-width': 1.5
+      },
+      layout: { 'line-cap': 'round', 'line-join': 'round' }
+    });
+    // No hover/click handlers on this layer -- matches the original's
+    // `interactive: false` Leaflet polylines; arcs are purely visual.
+
     // Apply the currently active filters to every tracked feature's
-    // 'dimmed' state. Exposed on window so the pill click handlers
-    // (defined at top-level scope, outside this load callback) can reach it.
+    // 'dimmed' state, and rebuild the arcs to match. Exposed on window
+    // so the pill click handlers (defined at top-level scope, outside
+    // this load callback) can reach it.
     window.applyFiltersToMap = function() {
       allFeatures.forEach(feature => {
         if (!feature.properties.hasAgreement) return; // already background, nothing to update
@@ -1242,6 +1316,7 @@ map.on('load', async () => {
         const dimmed = !matchesFilters(country);
         map.setFeatureState({ source: 'countries', id: feature.properties.fid }, { dimmed });
       });
+      map.getSource('arcs').setData(buildArcsGeoJSON());
     };
 
     // Minimal hover feedback (full sidebar/click wiring is Phase 3)
