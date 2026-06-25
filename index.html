@@ -1547,6 +1547,7 @@ function switchView(mode) {
     map.setMaxPitch(0);
     map.easeTo({ pitch: 0, bearing: 0, duration: 300 });
   }
+  map.setPaintProperty('background', 'background-color', oceanColorFor(mode, darkMode));
 }
 
 // ──────────────────────────────────────────────
@@ -1608,6 +1609,16 @@ function fixMapGeometry(geom) {
 // Only bump zoom for viewports past that safety margin, comfortably
 // beyond any real monitor, so normal/large screens keep the same
 // "see the whole world at a glance" framing as before.
+// Globe mode renders empty space *outside* the sphere using the #map div's
+// CSS background (see above), while the sphere's own ocean is painted by
+// the 'background' layer below -- on the flat map those are deliberately
+// the same color (it's just one continuous canvas), but on the globe that
+// makes the sphere blend into the void around it with no visible edge.
+// Distinct, slightly richer ocean colors fix that just for globe mode;
+// the flat map's colors are untouched.
+const OCEAN_COLOR = { map: { dark: '#060c14', light: '#ddeaf3' }, globe: { dark: '#10243a', light: '#aed4ea' } };
+function oceanColorFor(mode, dark) { return OCEAN_COLOR[mode][dark ? 'dark' : 'light']; }
+
 const MAP_DEFAULT_CENTER = [-98.6, 39.8];   // [lng, lat] -- geographic center of the US (deportations originate there)
 const mapEl = document.getElementById('map');
 const mapViewportSize = Math.max(mapEl.clientWidth || window.innerWidth, mapEl.clientHeight || window.innerHeight);
@@ -1627,7 +1638,7 @@ const map = new maplibregl.Map({
     layers: [
       // Ocean/background color matches the original's #map-container /
       // .leaflet-container dark and light values exactly.
-      { id: 'background', type: 'background', paint: { 'background-color': darkMode ? '#060c14' : '#ddeaf3' } }
+      { id: 'background', type: 'background', paint: { 'background-color': oceanColorFor('map', darkMode) } }
     ]
   },
   center: MAP_DEFAULT_CENTER,
@@ -1917,7 +1928,7 @@ map.on('load', async () => {
     // the transfer arcs, and the labels (see note above) are all
     // theme-invariant in the original/by design, so untouched here.
     window.setMapTheme = function(dark) {
-      map.setPaintProperty('background', 'background-color', dark ? '#060c14' : '#ddeaf3');
+      map.setPaintProperty('background', 'background-color', oceanColorFor(viewMode, dark));
       map.setPaintProperty('country-fills', 'fill-color', countryFillColorExpr(dark));
       map.setPaintProperty('country-borders', 'line-color', countryLineColorExpr(dark));
     };
