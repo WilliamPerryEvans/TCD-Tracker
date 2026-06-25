@@ -1338,6 +1338,19 @@ function fixMapGeometry(geom) {
   return geom;
 }
 
+// With renderWorldCopies:false, MapLibre refuses to show empty space past
+// the edge of the single world copy -- if the world (256*2^zoom px) is
+// narrower than the container, it silently recenters toward lng 0 to keep
+// that copy filling the frame, overriding whatever `center` was requested.
+// At zoom 2 the world is only 1024px wide, narrower than nearly any desktop
+// browser window, so the US-centering above was getting clobbered on
+// anything wider than a tablet. Compute the minimum zoom that actually
+// fits this viewport (both dimensions) before constructing the map.
+const MAP_DEFAULT_CENTER = [-98.6, 39.8];   // [lng, lat] -- geographic center of the US (deportations originate there)
+const mapEl = document.getElementById('map');
+const mapViewportSize = Math.max(mapEl.clientWidth || window.innerWidth, mapEl.clientHeight || window.innerHeight);
+const MAP_DEFAULT_ZOOM = Math.max(2, Math.log2(mapViewportSize / 256) + 0.05);
+
 const map = new maplibregl.Map({
   container: 'map',
   style: {
@@ -1349,8 +1362,9 @@ const map = new maplibregl.Map({
       { id: 'background', type: 'background', paint: { 'background-color': darkMode ? '#060c14' : '#ddeaf3' } }
     ]
   },
-  center: [-98.6, 39.8],   // [lng, lat] -- geographic center of the US (deportations originate there)
-  zoom: 2,
+  center: MAP_DEFAULT_CENTER,
+  zoom: MAP_DEFAULT_ZOOM,
+  minZoom: MAP_DEFAULT_ZOOM,   // zooming out further re-triggers the recenter-toward-0 issue above
   renderWorldCopies: false,
   maxPitch: 0,
 });
@@ -1671,7 +1685,7 @@ map.on('load', async () => {
       setSelected(null);
       document.getElementById('sidebar').classList.remove('open');
       // Matches the page's default load view -- US-centered (see map init above).
-      map.flyTo({ center: [-98.6, 39.8], zoom: 2, duration: 900 });
+      map.flyTo({ center: MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM, duration: 900 });
     }
 
     // Exposed globally: closeSidebar for the sidebar's inline onclick, and
