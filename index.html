@@ -1369,6 +1369,9 @@ const map = new maplibregl.Map({
   style: {
     version: 8,
     sources: {},
+    // MapLibre's free public glyph server -- only needed for the country
+    // name labels below; everything else in this style is vector shapes.
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
     layers: [
       // Ocean/background color matches the original's #map-container /
       // .leaflet-container dark and light values exactly.
@@ -1434,6 +1437,10 @@ map.on('load', async () => {
         fid: idx,
         iso,
         name: name || null,
+        // Natural Earth's name, kept for every country (not just tracked
+        // ones) so the base-layer label layer below has something to show
+        // for context even where `name` above is null.
+        displayName: neName || name || null,
         hasAgreement: !!data,
         agreementType: data ? data.agreementType : null,
         transfersOccurred: data ? data.transfersOccurred : false,
@@ -1443,6 +1450,59 @@ map.on('load', async () => {
 
     // Sanity check: did every COUNTRIES entry find a matching polygon?
     const unmatched = COUNTRIES.map(c => c.name).filter(n => !matchedNames.has(n));
+
+    // One label point per country, not one per polygon part -- MapLibre's
+    // default symbol placement on a MultiPolygon source labels *each* ring,
+    // which for a country like the US (mainland + Alaska + Hawaii + ...)
+    // means the same name repeated several times across the map. Compute
+    // the area-weighted centroid (shoelace formula) of just the largest
+    // ring per country instead, and label that single point.
+    function ringArea(ring) {
+      let sum = 0;
+      for (let i = 0; i < ring.length - 1; i++) {
+        sum += ring[i][0] * ring[i + 1][1] - ring[i + 1][0] * ring[i][1];
+      }
+      return Math.abs(sum) / 2;
+    }
+    function ringCentroid(ring) {
+      let area = 0, cx = 0, cy = 0;
+      for (let i = 0; i < ring.length - 1; i++) {
+        const [x1, y1] = ring[i], [x2, y2] = ring[i + 1];
+        const cross = x1 * y2 - x2 * y1;
+        area += cross;
+        cx += (x1 + x2) * cross;
+        cy += (y1 + y2) * cross;
+      }
+      area /= 2;
+      if (Math.abs(area) < 1e-9) {
+        const n = ring.length - 1;
+        const sums = ring.slice(0, n).reduce((s, p) => [s[0] + p[0], s[1] + p[1]], [0, 0]);
+        return [sums[0] / n, sums[1] / n];
+      }
+      return [cx / (6 * area), cy / (6 * area)];
+    }
+    function largestRingCentroid(geometry) {
+      const rings = geometry.type === 'Polygon' ? [geometry.coordinates[0]]
+        : geometry.type === 'MultiPolygon' ? geometry.coordinates.map(poly => poly[0])
+        : [];
+      let best = null, bestArea = -1;
+      rings.forEach(ring => {
+        const a = ringArea(ring);
+        if (a > bestArea) { bestArea = a; best = ring; }
+      });
+      return best ? ringCentroid(best) : null;
+    }
+    const labelFeatures = allFeatures
+      .filter(f => f.properties.displayName)
+      .map(f => {
+        const pt = largestRingCentroid(f.geometry);
+        return pt && { type: 'Feature', properties: { displayName: f.properties.displayName }, geometry: { type: 'Point', coordinates: pt } };
+      })
+      .filter(Boolean);
+    map.addSource('country-label-points', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: labelFeatures },
+    });
 
     map.addSource('countries', {
       type: 'geojson',
@@ -1524,6 +1584,33 @@ map.on('load', async () => {
       }
     });
 
+    // Country name labels -- general geographic context, independent of
+    // TCD tracking status. Kept deliberately subtle: small/muted text,
+    // a halo instead of a background box, and MapLibre's default
+    // collision detection (text-allow-overlap left false) so crowded
+    // regions just thin themselves out automatically rather than
+    // overlapping -- more labels reveal themselves as you zoom in.
+    function countryLabelColorExpr(dark) {
+      return dark ? '#5b6b7d' : '#7c8a9a';
+    }
+    map.addLayer({
+      id: 'country-labels',
+      type: 'symbol',
+      source: 'country-label-points',
+      layout: {
+        'text-field': ['get', 'displayName'],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 2, 8, 6, 12],
+        'text-padding': 4,
+      },
+      paint: {
+        'text-color': countryLabelColorExpr(darkMode),
+        'text-halo-color': darkMode ? '#060c14' : '#ddeaf3',
+        'text-halo-width': 1,
+        'text-opacity': 0.85,
+      }
+    });
+
     // ── PHASE 7: transfer arcs (static; see note above on why both
     // projections get arcs even though the live site's flat map doesn't) ──
     //
@@ -1573,6 +1660,8 @@ map.on('load', async () => {
       map.setPaintProperty('background', 'background-color', dark ? '#060c14' : '#ddeaf3');
       map.setPaintProperty('country-fills', 'fill-color', countryFillColorExpr(dark));
       map.setPaintProperty('country-borders', 'line-color', countryLineColorExpr(dark));
+      map.setPaintProperty('country-labels', 'text-color', countryLabelColorExpr(dark));
+      map.setPaintProperty('country-labels', 'text-halo-color', dark ? '#060c14' : '#ddeaf3');
     };
 
     // Minimal hover feedback (full sidebar/click wiring is Phase 3)
