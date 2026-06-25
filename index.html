@@ -1349,7 +1349,7 @@ const map = new maplibregl.Map({
       { id: 'background', type: 'background', paint: { 'background-color': darkMode ? '#060c14' : '#ddeaf3' } }
     ]
   },
-  center: [20, 10],   // [lng, lat] -- MapLibre order, opposite of Leaflet
+  center: [-98.6, 39.8],   // [lng, lat] -- geographic center of the US (deportations originate there)
   zoom: 2,
   renderWorldCopies: false,
   maxPitch: 0,
@@ -1670,8 +1670,8 @@ map.on('load', async () => {
     function closeSidebar() {
       setSelected(null);
       document.getElementById('sidebar').classList.remove('open');
-      // Leaflet's flyTo([20, -20], 2) -> MapLibre order is [lng, lat] = [-20, 20].
-      map.flyTo({ center: [-20, 20], zoom: 2, duration: 900 });
+      // Matches the page's default load view -- US-centered (see map init above).
+      map.flyTo({ center: [-98.6, 39.8], zoom: 2, duration: 900 });
     }
 
     // Exposed globally: closeSidebar for the sidebar's inline onclick, and
