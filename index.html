@@ -1344,12 +1344,25 @@ function fixMapGeometry(geom) {
 // that copy filling the frame, overriding whatever `center` was requested.
 // At zoom 2 the world is only 1024px wide, narrower than nearly any desktop
 // browser window, so the US-centering above was getting clobbered on
-// anything wider than a tablet. Compute the minimum zoom that actually
-// fits this viewport (both dimensions) before constructing the map.
+// anything wider than a tablet.
+//
+// Fix is renderWorldCopies:true instead (below) -- center now sticks at
+// any viewport size since there's no "must fill the frame" constraint to
+// fight. Tested empirically up to 3800px wide with zero duplicate-world
+// artifacts (our data is a single GeoJSON FeatureCollection at fixed
+// coordinates, not a wrapping tile scheme, so MapLibre doesn't actually
+// tile copies of it until the viewport gets *much* wider than the
+// classic zoom-2 world -- duplicates only showed up testing at 6000px).
+// Only bump zoom for viewports past that safety margin, comfortably
+// beyond any real monitor, so normal/large screens keep the same
+// "see the whole world at a glance" framing as before.
 const MAP_DEFAULT_CENTER = [-98.6, 39.8];   // [lng, lat] -- geographic center of the US (deportations originate there)
 const mapEl = document.getElementById('map');
 const mapViewportSize = Math.max(mapEl.clientWidth || window.innerWidth, mapEl.clientHeight || window.innerHeight);
-const MAP_DEFAULT_ZOOM = Math.max(2, Math.log2(mapViewportSize / 256) + 0.05);
+const WORLD_COPY_SAFE_WIDTH = 3000;   // empirically clean to ~3800px; stays well clear of that
+const MAP_DEFAULT_ZOOM = mapViewportSize <= WORLD_COPY_SAFE_WIDTH
+  ? 2
+  : Math.log2(mapViewportSize / 256) + 0.05;
 
 const map = new maplibregl.Map({
   container: 'map',
@@ -1364,8 +1377,8 @@ const map = new maplibregl.Map({
   },
   center: MAP_DEFAULT_CENTER,
   zoom: MAP_DEFAULT_ZOOM,
-  minZoom: MAP_DEFAULT_ZOOM,   // zooming out further re-triggers the recenter-toward-0 issue above
-  renderWorldCopies: false,
+  minZoom: MAP_DEFAULT_ZOOM,   // zooming out further would only matter on the huge screens this already accounts for
+  renderWorldCopies: true,
   maxPitch: 0,
 });
 
