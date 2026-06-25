@@ -1396,8 +1396,15 @@ map.on('load', async () => {
 
     // Everything from 110m EXCEPT the small-island set; those come from 50m instead
     // (110m omits most small island nations entirely, including several TCD countries).
+    // Antarctica (ISO 010) is also dropped here: it's not a TCD country, and its
+    // coastline ring legitimately spans the full -180..180 width (it wraps the
+    // bottom of the map), which fixMapGeometry's tear-unwrapping logic mistakes
+    // for a torn ring and mangles into a jagged, self-intersecting mess. The
+    // original Leaflet site never had to handle this -- minZoom:2 kept it out of
+    // view entirely. With renderWorldCopies:true allowing free vertical panning,
+    // it's reachable here, so just exclude it rather than special-case the fix.
     const mainFeatures = countries110.features.filter(
-      f => !SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
+      f => !SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0')) && String(f.id).padStart(3, '0') !== '010'
     );
     const islandFeatures = countries50.features.filter(
       f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
