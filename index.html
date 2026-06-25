@@ -197,6 +197,10 @@
   body.light-mode #filter-toggle:hover  { background: rgba(9,105,218,0.13); }
   body.light-mode #filter-toggle.active { background: rgba(9,105,218,0.17); border-color: #0969da; }
 
+  body.light-mode #docs-toggle { background: rgba(26,127,55,0.07); border-color: rgba(26,127,55,0.25); color: #1a7f37; }
+  body.light-mode #docs-toggle:hover  { background: rgba(26,127,55,0.13); }
+  body.light-mode #docs-toggle.active { background: rgba(26,127,55,0.17); border-color: #1a7f37; }
+
   body.light-mode #sidebar { background: rgba(255,255,255,0.97); border-left-color: #d0d7de; }
   body.light-mode #sidebar-close      { color: #57606a; }
   body.light-mode #sidebar-close:hover { color: #24292f; }
@@ -212,6 +216,24 @@
   body.light-mode #sidebar::-webkit-scrollbar-thumb { background: #d0d7de; }
 
   body.light-mode #filter-panel { background: rgba(255,255,255,0.97); border-bottom-color: #d0d7de; }
+  body.light-mode #docs-panel { background: rgba(255,255,255,0.97); border-bottom-color: #d0d7de; }
+  body.light-mode .doc-card          { background: rgba(208,215,222,0.35); border-color: #d0d7de; }
+  body.light-mode .doc-card-title    { color: #24292f; }
+  body.light-mode .doc-card-source   { color: #57606a; }
+  body.light-mode .doc-card-arrow    { color: #8c949e; }
+  body.light-mode .docs-section-divider { border-top-color: #d0d7de; }
+  body.light-mode #docs-panel-title  { color: #1a7f37; }
+  body.light-mode .docs-section-label.advocates { color: #0969da; }
+  body.light-mode .docs-section-label.trackers  { color: #bf8700; }
+  body.light-mode #docs-igo-note     { color: #8c949e; border-top-color: #d0d7de; }
+  body.light-mode #docs-igo-note strong { color: #57606a; }
+  body.light-mode .doc-card.blue     { border-color: rgba(9,105,218,0.25); }
+  body.light-mode .doc-card.yellow   { border-color: rgba(191,135,0,0.25); }
+  body.light-mode .doc-card-date.blue   { color: #0969da; }
+  body.light-mode .doc-card-date.yellow { color: #bf8700; }
+  body.light-mode a.doc-card-link:hover .doc-card       { background: rgba(188,200,215,0.55); }
+  body.light-mode a.doc-card-link:hover .doc-card.blue  { border-color: rgba(9,105,218,0.5); }
+  body.light-mode a.doc-card-link:hover .doc-card.yellow{ border-color: rgba(191,135,0,0.5); }
   body.light-mode .filter-label { color: #57606a; }
   body.light-mode .pill {
     background: rgba(208,215,222,0.4); border-color: #d0d7de; color: #57606a;
@@ -296,6 +318,93 @@
   #filter-toggle:hover { background: rgba(88,166,255,0.2); }
   #filter-toggle.active { background: rgba(88,166,255,0.25); border-color: #58a6ff; }
 
+  /* ── DOCS TOGGLE BUTTON (copied from index.html) ── */
+  #docs-toggle {
+    background: rgba(63,185,80,0.1);
+    border: 1px solid rgba(63,185,80,0.25);
+    color: #3fb950;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    cursor: pointer; white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  #docs-toggle:hover { background: rgba(63,185,80,0.18); }
+  #docs-toggle.active { background: rgba(63,185,80,0.22); border-color: #3fb950; }
+
+  /* ── DOCUMENTS PANEL (copied from index.html) ── */
+  #docs-panel {
+    position: fixed;
+    top: var(--header-h); left: 0; right: 0;
+    z-index: 94;
+    background: rgba(10, 15, 24, 0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #21262d;
+    padding: 12px 20px 16px;
+    transform: translateY(-110%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+  }
+  #docs-panel.open { transform: translateY(0); }
+
+  #docs-panel-title {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #3fb950; margin-bottom: 10px;
+  }
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+  }
+  .doc-card {
+    background: rgba(33,38,45,0.6);
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 9px 12px;
+  }
+  .doc-card-date {
+    font-size: 11px; color: #3fb950;
+    font-weight: 700; margin-bottom: 3px;
+  }
+  .doc-card-title {
+    font-size: 13px; color: #f0f6fc;
+    font-weight: 600; line-height: 1.4;
+    margin-bottom: 2px;
+  }
+  .doc-card-source {
+    font-size: 11px; color: #8b949e;
+  }
+  #docs-igo-note {
+    margin-top: 10px;
+    font-size: 12px; color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 8px;
+    line-height: 1.5;
+  }
+  .docs-section-divider {
+    border: none; border-top: 1px solid #21262d;
+    margin: 14px 0 10px;
+  }
+  .docs-section-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .docs-section-label.advocates { color: #58a6ff; }
+  .docs-section-label.trackers  { color: #e3b341; }
+  .doc-card.blue  { border-color: rgba(88,166,255,0.25); }
+  .doc-card.yellow { border-color: rgba(227,179,65,0.25); }
+  .doc-card-date.blue   { color: #58a6ff; }
+  .doc-card-date.yellow { color: #e3b341; }
+  a.doc-card-link { text-decoration: none; color: inherit; display: block; }
+  a.doc-card-link .doc-card { transition: border-color 0.15s, background 0.15s; cursor: pointer; }
+  a.doc-card-link:hover .doc-card { background: rgba(44,50,60,0.8); }
+  a.doc-card-link:hover .doc-card.blue   { border-color: rgba(88,166,255,0.55); }
+  a.doc-card-link:hover .doc-card.yellow { border-color: rgba(227,179,65,0.55); }
+  .doc-card-arrow { float: right; font-size: 11px; color: #484f58; margin-top: 1px; }
+
   #filter-panel {
     position: fixed;
     top: var(--header-h); left: 0; right: 0;
@@ -360,8 +469,7 @@
     display: none;
   }
 
-  /* ── RESPONSIVE BREAKPOINTS (copied from index.html; #docs-toggle/
-       #docs-panel/.docs-grid rules omitted -- not built in this version) ── */
+  /* ── RESPONSIVE BREAKPOINTS (copied from index.html) ── */
   @media (max-width: 900px) {
     #header { gap: 12px; padding: 10px 16px; }
     #source-line { display: none; }
@@ -378,13 +486,17 @@
     .stat-value { font-size: 18px; }
     .stat-label { font-size: 9px; }
 
-    #filter-toggle, #theme-toggle { font-size: 11px; padding: 4px 9px; }
+    #filter-toggle, #docs-toggle, #theme-toggle { font-size: 11px; padding: 4px 9px; }
 
     /* Sidebar spans full width so it's actually usable */
     #sidebar { width: 100vw; border-left: none; }
 
     /* Panels: cap height and scroll so they don't bury the map */
     #filter-panel { max-height: 55vh; overflow-y: auto; }
+    #docs-panel  { max-height: 55vh; overflow-y: auto; }
+
+    /* Docs grid: one column fits narrow screens */
+    .docs-grid { grid-template-columns: 1fr; }
 
     /* Country list: a bit narrower */
     #country-list { width: 175px; }
@@ -401,7 +513,7 @@
     .stat-label { font-size: 9px; }
 
     #[redacted]-logo { height: 24px; }
-    #filter-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
+    #filter-toggle, #docs-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
 
     /* Country list stays collapsed (JS handles it) but remains tappable */
     #country-list { width: 160px; }
@@ -436,6 +548,7 @@
     <div class="stat"><div class="stat-value green" id="stat-funding">&mdash;</div><div class="stat-label">U.S. Funding</div></div>
   </div>
   <button id="filter-toggle" onclick="toggleFilterPanel()">&#9776; Filters <span id="filter-count"></span></button>
+  <button id="docs-toggle" onclick="toggleDocsPanel()">&#128196; Docs &amp; Resources</button>
   <div id="view-toggle">
     <button class="view-btn active" id="view-map-btn" onclick="switchView('map')">Map</button>
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
@@ -443,6 +556,123 @@
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
   <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
+</div>
+
+<!-- DOCUMENTS PANEL (markup copied verbatim from index.html) -->
+<div id="docs-panel">
+  <div id="docs-panel-title">Key Government Documents &amp; Resources</div>
+  <div class="docs-grid">
+    <div class="doc-card">
+      <div class="doc-card-date">Feb 18, 2025</div>
+      <div class="doc-card-title">DHS Policy Directive on Third Country Deportations</div>
+      <div class="doc-card-source">Dept. of Homeland Security</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Mar 30, 2025</div>
+      <div class="doc-card-title">DHS Memo: Guidance Regarding Third Country Removals</div>
+      <div class="doc-card-source">Dept. of Homeland Security</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Jul 10, 2025</div>
+      <div class="doc-card-title">ICE Memo: Third Country Removals Following Supreme Court Order in DHS v. D.V.D.</div>
+      <div class="doc-card-source">Immigration and Customs Enforcement</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Sep 24, 2025</div>
+      <div class="doc-card-title">Congressional Letter Seeking Information on Third Country Deportations</div>
+      <div class="doc-card-source">Sen. Elizabeth Warren</div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card-date">Nov 10, 2025</div>
+      <div class="doc-card-title">Letter to DOS Secretary Rubio re: $7.5M Transfer to Equatorial Guinea</div>
+      <div class="doc-card-source">Ranking Member Sen. Jeanne Shaheen</div>
+    </div>
+  </div>
+  <div id="docs-igo-note">
+    <strong style="color:#8b949e;">International responses:</strong>
+    Jul 8, 2025 &mdash; UN Special Rapporteurs alarmed by Supreme Court order clearing way for deportations, stressing assessments must be individual and country-specific. &nbsp;&middot;&nbsp;
+    Oct 6, 2025 &mdash; UN High Commissioner for Refugees stated concern about the legality of U.S. deportation practices, urging countries to consult UNHCR before entering agreements.
+  </div>
+
+  <hr class="docs-section-divider">
+  <div class="docs-section-label advocates">For Advocates &amp; Legal Practitioners</div>
+  <div class="docs-grid">
+    <a class="doc-card-link" href="https://www.justiceinmotion.org/legal-action" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Ongoing <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Post-Deportation Intake &amp; Referral Form</div>
+        <div class="doc-card-source">Justice in Motion (JiM) — post-deportation monitoring, rights violation detection, and connection to local resources in MX, GT, ES, HN, NI</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrationlitigation.org/new-advisoryprotecting-noncitizens-granted-withholding-of-removal-or-cat-protection-against-deportation-to-third-countries-where-they-fear-persecution-torture/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jan 29, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Practice Advisory: Protecting Noncitizens with Withholding of Removal or CAT Against Third Country Deportation</div>
+        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrationlitigation.org/wp-content/uploads/2025/06/25.05.27-DVD-Practice-Alert.pdf" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jun 27, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Practice Alert: Third Country Deportations and D.V.D. v. DHS</div>
+        <div class="doc-card-source">National Immigration Litigation Alliance (NILA)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://immigrantjustice.org/for-attorneys/resources/training-responding-to-motions-to-pretermit-asylum-applications/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Jan 20, 2026 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Responding to Motions to Pretermit Asylum Applications</div>
+        <div class="doc-card-source">National Immigrant Justice Center (NIJC)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://www.ilrc.org/community-resources/asylum-cooperative-agreements-what-you-must-know" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Dec 2, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Asylum Cooperative Agreements: What You Must Know</div>
+        <div class="doc-card-source">Immigrant Legal Resource Center (ILRC)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://nipnlg.org/work/resources/fifteen-steps-addressing-orders-removal-issued-immigration-judge" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Reference <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Fifteen Steps for Addressing Orders of Removal Issued by an Immigration Judge</div>
+        <div class="doc-card-source">National Immigration Project (NIPNLG)</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://refugees.org/behind-the-brief-the-danger-of-institutionalizing-third-country-returns/" target="_blank" rel="noopener">
+      <div class="doc-card blue">
+        <div class="doc-card-date blue">Nov 19, 2025 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Behind the Brief: The Danger of Institutionalizing Third Country Returns</div>
+        <div class="doc-card-source">[redacted] ([redacted])</div>
+      </div>
+    </a>
+  </div>
+
+  <hr class="docs-section-divider">
+  <div class="docs-section-label trackers">Other Trackers &amp; Explainers</div>
+  <div class="docs-grid">
+    <a class="doc-card-link" href="https://humanrightsfirst.org/events/banished-by-bargain-third-country-deportation-watch/" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Updated May 29, 2026 <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">Banished by Bargain: Third Country Deportation Watch</div>
+        <div class="doc-card-source">Human Rights First &amp; Refugees International — primary source data for this tracker</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://humanrightsfirst.org/ice-flight-monitor/" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Live <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">ICE Flight Monitor</div>
+        <div class="doc-card-source">Human Rights First — tracks deportation flights in real time</div>
+      </div>
+    </a>
+    <a class="doc-card-link" href="https://www.cfr.org/articles/what-are-third-country-deportations-and-why-trump-using-them" target="_blank" rel="noopener">
+      <div class="doc-card yellow">
+        <div class="doc-card-date yellow">Explainer <span class="doc-card-arrow">↗</span></div>
+        <div class="doc-card-title">What Are Third Country Deportations, and Why Is Trump Using Them?</div>
+        <div class="doc-card-source">Council on Foreign Relations (CFR)</div>
+      </div>
+    </a>
+  </div>
 </div>
 
 <!-- COUNTRY LIST (markup copied verbatim from index.html) -->
@@ -1101,11 +1331,29 @@ window.applyFiltersToMap = function() {};
 window.openSidebar = function() { console.warn('Map geometry still loading — try again in a moment.'); };
 
 let filterPanelOpen = false;
+let docsPanelOpen = false;
 
 function toggleFilterPanel() {
+  if (docsPanelOpen) {
+    docsPanelOpen = false;
+    document.getElementById('docs-panel').classList.remove('open');
+    document.getElementById('docs-toggle').classList.remove('active');
+  }
   filterPanelOpen = !filterPanelOpen;
   document.getElementById('filter-panel').classList.toggle('open', filterPanelOpen);
   document.getElementById('filter-toggle').classList.toggle('active', filterPanelOpen);
+  setTimeout(updateCountryListPos, 20);
+}
+
+function toggleDocsPanel() {
+  if (filterPanelOpen) {
+    filterPanelOpen = false;
+    document.getElementById('filter-panel').classList.remove('open');
+    document.getElementById('filter-toggle').classList.remove('active');
+  }
+  docsPanelOpen = !docsPanelOpen;
+  document.getElementById('docs-panel').classList.toggle('open', docsPanelOpen);
+  document.getElementById('docs-toggle').classList.toggle('active', docsPanelOpen);
   setTimeout(updateCountryListPos, 20);
 }
 
@@ -1206,6 +1454,10 @@ function updateCountryListPos() {
 
   if (filterPanelOpen) {
     const panelH = document.getElementById('filter-panel').offsetHeight;
+    cl.style.top = (headerH + panelH + 8) + 'px';
+    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
+  } else if (docsPanelOpen) {
+    const panelH = document.getElementById('docs-panel').offsetHeight;
     cl.style.top = (headerH + panelH + 8) + 'px';
     clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
   } else {
