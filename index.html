@@ -304,7 +304,12 @@
   #country-list-arrow { font-size: 9px; transition: transform 0.2s; }
   #country-list-arrow.closed { transform: rotate(180deg); }
   #country-list-body {
-    max-height: calc(100vh - var(--header-h) - 90px);
+    /* 120px covers the list's own header+subhead+search-box chrome above
+       this scrollable area, plus a bottom margin -- grew from 90px when
+       the search box (added 2026-06-26) added ~29px of chrome that this
+       constant wasn't accounting for, pushing the panel's bottom edge
+       past the viewport. */
+    max-height: calc(100vh - var(--header-h) - 120px);
     overflow-y: auto;
     transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -1512,11 +1517,11 @@ function updateCountryListPos() {
   if (filterPanelOpen) {
     const panelH = document.getElementById('filter-panel').offsetHeight;
     cl.style.top = (headerH + panelH + 8) + 'px';
-    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
+    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 110) + 'px';
   } else if (docsPanelOpen) {
     const panelH = document.getElementById('docs-panel').offsetHeight;
     cl.style.top = (headerH + panelH + 8) + 'px';
-    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 80) + 'px';
+    clBody.style.maxHeight = (window.innerHeight - headerH - panelH - 110) + 'px';
   } else {
     cl.style.top = '';
     clBody.style.maxHeight = '';
