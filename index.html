@@ -149,7 +149,11 @@
   }
 
   #header-title { flex: 1; min-width: 200px; }
-  #header-title h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em; }
+  #header-title h1 {
+    font-size: 16px; font-weight: 600; color: #f0f6fc; letter-spacing: -0.01em;
+    cursor: pointer; display: inline-block;
+  }
+  #header-title h1:hover { color: #58a6ff; }
   #header-title p { font-size: 12px; color: #8b949e; margin-top: 2px; }
 
   #stats-bar { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -169,7 +173,9 @@
   .region-sep { margin: 0 5px; color: #21262d; }
 
   #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
-  #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; }
+  #[redacted]-logo-link { display: inline-flex; flex-shrink: 0; }
+  #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; transition: opacity 0.15s; }
+  #[redacted]-logo-link:hover #[redacted]-logo { opacity: 1; }
 
   /* ── VIEW TOGGLE (Map/Globe — copied from index.html) ── */
   #view-toggle { display: flex; border: 1px solid rgba(88,166,255,0.25); border-radius: 6px; overflow: hidden; }
@@ -201,6 +207,7 @@
   #header-title h1 { color: #f0f6fc; }
   body.light-mode #header { background: rgba(255,255,255,0.92); border-bottom-color: #d0d7de; }
   body.light-mode #header-title h1 { color: #24292f; }
+  body.light-mode #header-title h1:hover { color: #0969da; }
   body.light-mode #header-title p  { color: #57606a; }
   body.light-mode .stat-label      { color: #57606a; }
   body.light-mode #source-line     { color: #8c949e; }
@@ -574,7 +581,7 @@
      buttons -- those are inert until Phase 6/8, added then rather than now). -->
 <div id="header">
   <div id="header-title">
-    <h1>Third Country Deportations Tracker</h1>
+    <h1 onclick="resetToDefault()" title="Reset to default view">Third Country Deportations Tracker</h1>
     <p>Forced transfers under U.S. bilateral agreements &mdash; as of June 2026</p>
     <div id="region-row">
       <span class="region-link" id="rl-americas" onclick="setRegionFilter('Americas')">Americas <strong id="rb-americas">15</strong></span>
@@ -599,7 +606,9 @@
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
-  <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
+  <a id="[redacted]-logo-link" href="https://refugees.org/" target="_blank" rel="noopener" title="Visit [redacted]">
+    <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
+  </a>
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
 
@@ -1453,6 +1462,27 @@ function clearFilters() {
   updateStats();
   window.applyFiltersToMap();
   buildCountryList();
+}
+
+// Header title click -- acts like a "reset" button back to the page's
+// initial load state: closes the sidebar (which also flies the map back
+// to the default US-centered view), clears every filter/search, closes
+// any open panel, and drops back to Map view if currently on Globe.
+// Reuses the same functions/state each of those individually already
+// uses elsewhere rather than reimplementing any of it.
+function resetToDefault() {
+  // Order matters: switchView('map')'s own camera easeTo (pitch/bearing)
+  // must settle *before* closeSidebar()'s flyTo starts, otherwise it
+  // interrupts the in-progress flyTo and freezes the map wherever it had
+  // gotten to instead of completing the pan home. closeSidebar() is last
+  // among anything that touches the camera.
+  if (viewMode === 'globe') switchView('map');
+  if (window.closeSidebar) window.closeSidebar();
+  clearFilters();
+  document.getElementById('country-search').value = '';
+  applySearchNarrowing();
+  if (filterPanelOpen) toggleFilterPanel();
+  if (docsPanelOpen) toggleDocsPanel();
 }
 
 document.querySelectorAll('.pill').forEach(btn => {
