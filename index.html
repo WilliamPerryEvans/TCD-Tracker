@@ -1759,7 +1759,11 @@ const map = new maplibregl.Map({
   maxPitch: 0,
 });
 
-map.addControl(new maplibregl.NavigationControl(), 'top-right');
+// showCompass:false drops the rotate/reset-bearing arrow -- no use for
+// rotating this map, and it let users spin/pitch the view to a
+// disorienting upside-down-ish angle with no obvious way back. Zoom
+// +/- buttons are kept.
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
 map.on('load', async () => {
   try {
