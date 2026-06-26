@@ -1351,6 +1351,19 @@ function buildArcsGeoJSON() {
 function flagEmojiToISOCode(flagEmoji) {
   return Array.from(flagEmoji).map(c => String.fromCharCode(c.codePointAt(0) - 127397)).join('').toLowerCase();
 }
+
+// Scales a flyTo's duration by how far it's actually travelling (haversine,
+// km) so a short hop between neighbors (e.g. Mexico -> Guatemala) stays
+// snappy while a long one (e.g. Mexico -> Uzbekistan) gets enough time to
+// read as a smooth pan/zoom instead of a jump cut. [lng,lat] pairs in/out
+// to match MapLibre's coordinate order.
+function flyDuration(from, to) {
+  const R = 6371, toR = d => d * Math.PI / 180;
+  const dLat = toR(to[1] - from[1]), dLng = toR(to[0] - from[0]);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toR(from[1])) * Math.cos(toR(to[1])) * Math.sin(dLng / 2) ** 2;
+  const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.min(2200, Math.max(1100, 1100 + km / 18));
+}
 function getTypeCode(c) {
   const t = c.agreementType.toLowerCase();
   if (t.includes('incarceration'))  return 'incarceration';
@@ -2116,7 +2129,8 @@ map.on('load', async () => {
       // NOTE coordinate order: COUNTRIES stores {lat, lng}; MapLibre's
       // flyTo center wants [lng, lat] -- the opposite of Leaflet's
       // flyTo([lat, lng]) used in the current site. Flipped explicitly here.
-      map.flyTo({ center: [country.lng, country.lat], zoom: 5, duration: 900 });
+      const from = map.getCenter();
+      map.flyTo({ center: [country.lng, country.lat], zoom: 5, duration: flyDuration([from.lng, from.lat], [country.lng, country.lat]) });
 
       document.getElementById('sidebar-flag').innerHTML =
         `<span class="fi fi-${flagEmojiToISOCode(country.flag)}" title="${country.name} flag"></span>`;
@@ -2214,7 +2228,8 @@ map.on('load', async () => {
         updateFilterCount(); updateStats(); window.applyFiltersToMap(); buildCountryList();
       }
       // Matches the page's default load view -- US-centered (see map init above).
-      map.flyTo({ center: MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM, duration: 900 });
+      const from = map.getCenter();
+      map.flyTo({ center: MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM, duration: flyDuration([from.lng, from.lat], MAP_DEFAULT_CENTER) });
     }
 
     // Exposed globally: closeSidebar for the sidebar's inline onclick, and
