@@ -22,6 +22,11 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body, #map { height: 100%; width: 100%; }
+  /* MapLibre's zoom +/- control defaults to the map container's own
+     top-right corner (top:0), which sits right behind the fixed #header
+     bar (z-index:100, full-width) -- not missing, just hidden underneath
+     it. Push it down below the header, same pattern as #country-list etc. */
+  .maplibregl-ctrl-top-right { top: calc(var(--header-h) + 12px); }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #060c14; color: #e6edf3; }
   #map { background: #060c14; }
   body.light-mode { background: #eef2f7; color: #24292f; }
