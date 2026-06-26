@@ -12,6 +12,13 @@
 <!-- TopoJSON Client (TopoJSON -> GeoJSON) -->
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 
+<!-- flag-icons: Windows desktop browsers ship no flag glyphs in any
+     system font, so Unicode flag emoji (used as COUNTRIES[].flag) render
+     as literal two-letter codes instead of flags -- this CSS sprite/SVG
+     library renders real flag images instead, keyed by ISO alpha-2 class
+     names (fi-us, fi-gb, etc.), consistent everywhere. -->
+<link rel="stylesheet" href="https://unpkg.com/flag-icons@7.2.3/css/flag-icons.min.css" />
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body, #map { height: 100%; width: 100%; }
@@ -35,15 +42,22 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   #sidebar.open { transform: translateX(0); }
+  /* Desktop-only "fullscreen" reading mode -- same width/border values as
+     the 680px-breakpoint mobile override below, just toggled by a class
+     instead of a media query. The map isn't resized; it's simply occluded
+     behind this now-wider, already-opaque panel while expanded. */
+  #sidebar.fullscreen { width: 100vw; border-left: none; }
 
-  #sidebar-close {
+  #sidebar-close, #sidebar-expand {
     position: absolute;
-    top: 14px; right: 16px;
+    top: 14px;
     background: none; border: none;
     color: #8b949e; font-size: 20px;
     cursor: pointer; line-height: 1; padding: 4px;
   }
-  #sidebar-close:hover { color: #f0f6fc; }
+  #sidebar-close { right: 16px; }
+  #sidebar-expand { right: 48px; font-size: 17px; }
+  #sidebar-close:hover, #sidebar-expand:hover { color: #f0f6fc; }
 
   #sidebar-inner { padding: 20px; }
 
@@ -202,8 +216,8 @@
   body.light-mode #docs-toggle.active { background: rgba(26,127,55,0.17); border-color: #1a7f37; }
 
   body.light-mode #sidebar { background: rgba(255,255,255,0.97); border-left-color: #d0d7de; }
-  body.light-mode #sidebar-close      { color: #57606a; }
-  body.light-mode #sidebar-close:hover { color: #24292f; }
+  body.light-mode #sidebar-close, body.light-mode #sidebar-expand        { color: #57606a; }
+  body.light-mode #sidebar-close:hover, body.light-mode #sidebar-expand:hover { color: #24292f; }
   body.light-mode #sidebar-country-name { color: #24292f; }
   body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
   body.light-mode .info-label         { color: #57606a; }
@@ -227,6 +241,7 @@
   body.light-mode .docs-section-label.trackers  { color: #bf8700; }
   body.light-mode #docs-igo-note     { color: #8c949e; border-top-color: #d0d7de; }
   body.light-mode #docs-igo-note strong { color: #57606a; }
+  body.light-mode #docs-contact-line { color: #57606a; }
   body.light-mode .doc-card.blue     { border-color: rgba(9,105,218,0.25); }
   body.light-mode .doc-card.yellow   { border-color: rgba(191,135,0,0.25); }
   body.light-mode .doc-card-date.blue   { color: #0969da; }
@@ -250,6 +265,9 @@
   body.light-mode #country-list-header { color: #57606a; border-bottom-color: #d0d7de; }
   body.light-mode #country-list-header:hover { color: #24292f; }
   body.light-mode #country-list-subhead { color: #8c949e; border-bottom-color: #d0d7de; }
+  body.light-mode #country-search { color: #24292f; background: rgba(0,0,0,0.02); border-bottom-color: #d0d7de; }
+  body.light-mode #country-search::placeholder { color: #8c949e; }
+  body.light-mode #country-search:focus { background: rgba(9,105,218,0.06); }
   body.light-mode .cl-section.confirmed { color: #cf222e; }
   body.light-mode .cl-section.pending   { color: #bf8700; border-top-color: #d0d7de; }
   body.light-mode .cl-item             { color: #424a53; }
@@ -304,6 +322,16 @@
   .cl-item:hover { background: rgba(88, 166, 255, 0.08); color: #f0f6fc; }
   .cl-item .cl-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
   #country-list-subhead { padding: 4px 12px 6px; font-size: 10px; color: #484f58; border-bottom: 1px solid #21262d; }
+  #country-search {
+    display: block; width: 100%; box-sizing: border-box;
+    margin: 0; padding: 6px 12px;
+    font-size: 12px; font-family: inherit; color: #c9d1d9;
+    background: rgba(255,255,255,0.03);
+    border: none; border-bottom: 1px solid #21262d;
+    outline: none;
+  }
+  #country-search::placeholder { color: #6e7681; }
+  #country-search:focus { background: rgba(88,166,255,0.06); }
 
   #filter-toggle {
     background: rgba(88,166,255,0.1);
@@ -383,6 +411,11 @@
     padding-top: 8px;
     line-height: 1.5;
   }
+  #docs-contact-line {
+    font-size: 12px; color: #8b949e;
+    margin: -6px 0 14px;
+  }
+  #docs-contact-line a { color: inherit; text-decoration: underline; }
   .docs-section-divider {
     border: none; border-top: 1px solid #21262d;
     margin: 14px 0 10px;
@@ -490,6 +523,8 @@
 
     /* Sidebar spans full width so it's actually usable */
     #sidebar { width: 100vw; border-left: none; }
+    /* Already full-width here -- the desktop fullscreen toggle is redundant */
+    #sidebar-expand { display: none; }
 
     /* Panels: cap height and scroll so they don't bury the map */
     #filter-panel { max-height: 55vh; overflow-y: auto; }
@@ -561,6 +596,7 @@
 <!-- DOCUMENTS PANEL (markup copied verbatim from index.html) -->
 <div id="docs-panel">
   <div id="docs-panel-title">Key Government Documents &amp; Resources</div>
+  <div id="docs-contact-line">Questions or corrections? Email <a href="mailto:policytracker@refugees.org">policytracker@refugees.org</a></div>
   <div class="docs-grid">
     <div class="doc-card">
       <div class="doc-card-date">Feb 18, 2025</div>
@@ -682,6 +718,7 @@
     <span id="country-list-arrow">&#9650;</span>
   </div>
   <div id="country-list-subhead">Click any country to zoom</div>
+  <input id="country-search" type="text" placeholder="Search countries…" autocomplete="off">
   <div id="country-list-body"></div>
 </div>
 
@@ -729,6 +766,7 @@
 
 <!-- SIDEBAR (markup copied verbatim from index.html) -->
 <div id="sidebar">
+  <button id="sidebar-expand" onclick="toggleSidebarFullscreen()" title="Toggle fullscreen">&#10530;</button>
   <button id="sidebar-close" onclick="closeSidebar()">&#x2715;</button>
   <div id="sidebar-inner">
     <div id="sidebar-country-header">
@@ -1299,6 +1337,15 @@ function buildArcsGeoJSON() {
 // ──────────────────────────────────────────────
 // PHASE 4: filter state + matching logic (copied verbatim from index.html)
 // ──────────────────────────────────────────────
+// Regional-indicator flag emoji are pairs of codepoints U+1F1E6('A')..
+// U+1F1FF('Z'); subtracting 127397 from each codepoint yields the
+// uppercase letter's char code directly (verified against US: U+1F1FA,
+// U+1F1F8 -> 85,83 -> "US" -> "us"). Used to derive flag-icons' lowercase
+// ISO class names from the COUNTRIES[].flag field without hand-editing
+// all ~35 entries.
+function flagEmojiToISOCode(flagEmoji) {
+  return Array.from(flagEmoji).map(c => String.fromCharCode(c.codePointAt(0) - 127397)).join('').toLowerCase();
+}
 function getTypeCode(c) {
   const t = c.agreementType.toLowerCase();
   if (t.includes('incarceration'))  return 'incarceration';
@@ -1312,10 +1359,11 @@ function hasFunding(c) {
   return !c.funding.startsWith('No direct') && !c.funding.startsWith('No financial') && c.funding !== 'Not applicable';
 }
 
-const filters = { region: '', status: '', type: '', funding: '' };
+const filters = { region: '', status: '', type: '', funding: '', search: '' };
 
 function matchesFilters(c) {
   if (!c) return true;
+  if (filters.search   && c.name !== filters.search)                           return false;
   if (filters.region   && NAME_TO_REGION[c.name] !== filters.region)           return false;
   if (filters.status === 'confirmed' && !c.transfersOccurred)                   return false;
   if (filters.status === 'pending'   &&  c.transfersOccurred)                   return false;
@@ -1355,6 +1403,15 @@ function toggleDocsPanel() {
   document.getElementById('docs-panel').classList.toggle('open', docsPanelOpen);
   document.getElementById('docs-toggle').classList.toggle('active', docsPanelOpen);
   setTimeout(updateCountryListPos, 20);
+}
+
+// Desktop-only reading mode: expands the sidebar over the full viewport
+// (map stays put underneath, simply occluded) so a long entry can be read
+// without the map competing for space. No map.resize() needed since the
+// map's own size/position never changes.
+function toggleSidebarFullscreen() {
+  const fullscreen = document.getElementById('sidebar').classList.toggle('fullscreen');
+  document.getElementById('sidebar-expand').innerHTML = fullscreen ? '&#10529;' : '&#10530;';
 }
 
 function updateFilterCount() {
@@ -1481,9 +1538,9 @@ function buildCountryList() {
     const matches = matchesFilters(c);
     const dotColor = c.transfersOccurred ? '#f85149' : '#e3b341';
     const opacity = matches ? '1' : '0.3';
-    return `<div class="cl-item" onclick="flyTo('${c.name}')" style="opacity:${opacity}">
+    return `<div class="cl-item" data-name="${c.name}" onclick="flyTo('${c.name}')" style="opacity:${opacity}">
       <span class="cl-dot" style="background:${dotColor};"></span>
-      <span>${c.flag} ${c.name}</span>
+      <span><span class="fi fi-${flagEmojiToISOCode(c.flag)}" title="${c.name} flag"></span> ${c.name}</span>
     </div>`;
   }
 
@@ -1498,11 +1555,40 @@ function buildCountryList() {
   document.getElementById('country-list-title').textContent = isFiltered
     ? `${visible} of ${COUNTRIES.length} Countries`
     : `All ${COUNTRIES.length} Countries`;
+  applySearchNarrowing(); // re-apply live search text-filter to the freshly-rendered .cl-items
 }
+
+// Live substring narrowing of the rendered list -- independent of the
+// region/status/type/funding pills, pure show/hide, doesn't touch
+// feature-state or matchesFilters.
+function applySearchNarrowing() {
+  const input = document.getElementById('country-search');
+  const q = input.value.trim().toLowerCase();
+  document.querySelectorAll('.cl-item').forEach(item => {
+    item.style.display = item.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+document.getElementById('country-search').addEventListener('input', () => {
+  applySearchNarrowing();
+  if (filters.search && !document.getElementById('country-search').value.trim()) {
+    filters.search = '';
+    updateFilterCount(); updateStats(); window.applyFiltersToMap(); buildCountryList();
+  }
+});
 
 function flyTo(name) {
   const country = DATA_BY_NAME[name];
-  if (country) openSidebar(country);
+  if (!country) return;
+  // Clicking a country while the search box has text both narrows the map
+  // to just that one country (reusing the same filters/matchesFilters
+  // pipeline the region/status/type/funding pills already drive) and
+  // opens its detail view. Clicking with an empty search box behaves
+  // exactly as before -- just opens the sidebar.
+  if (document.getElementById('country-search').value.trim()) {
+    filters.search = name;
+    updateFilterCount(); updateStats(); window.applyFiltersToMap(); buildCountryList();
+  }
+  openSidebar(country);
 }
 window.flyTo = flyTo; // inline onclick in country-list items needs this global
 
@@ -1548,6 +1634,13 @@ function switchView(mode) {
     map.easeTo({ pitch: 0, bearing: 0, duration: 300 });
   }
   map.setPaintProperty('background', 'background-color', oceanColorFor(mode, darkMode));
+  // Transfer arcs: globe-only (see note at the layer definition for why) --
+  // toggle visibility and the comet animation loop together.
+  if (map.getLayer('transfer-arcs')) {
+    map.setLayoutProperty('transfer-arcs', 'visibility', mode === 'globe' ? 'visible' : 'none');
+  }
+  if (mode === 'globe') { if (window.startArcAnim) window.startArcAnim(); }
+  else { if (window.stopArcAnim) window.stopArcAnim(); }
 }
 
 // ──────────────────────────────────────────────
@@ -1813,6 +1906,15 @@ map.on('load', async () => {
         /* agreement only */ '#f0c840'
       ];
     }
+    // Dark mode: near-white text + dark halo. Light mode: near-black text
+    // (matches the light-mode body text color, line ~20) + a light halo --
+    // same trick mirrored, since the halo's job is to lift the text off
+    // the theme-invariant red/yellow tracked-country fills either way.
+    function countryLabelPaintFor(dark) {
+      return dark
+        ? { 'text-color': '#fbfcfd', 'text-halo-color': 'rgba(4,6,10,0.85)', 'text-halo-width': 1.5 }
+        : { 'text-color': '#24292f', 'text-halo-color': 'rgba(255,255,255,0.85)', 'text-halo-width': 1.4 };
+    }
 
     map.addLayer({
       id: 'country-fills',
@@ -1854,13 +1956,13 @@ map.on('load', async () => {
     // thin themselves out automatically rather than overlapping -- more
     // labels reveal themselves as you zoom in.
     //
-    // Color/halo are theme-INVARIANT on purpose: the tracked-country
-    // fills (red/yellow) sit underneath plenty of labels and don't
-    // change between themes, so a theme-matched halo (e.g. light blue in
-    // light mode) did nothing for contrast there -- labels over Cameroon/
-    // CAR/Eq. Guinea were nearly unreadable. A light, near-white text
-    // with a dark, fairly opaque halo reads on red, yellow, *and* either
-    // theme's background, without needing per-color-case logic.
+    // Color/halo are per-theme (countryLabelPaintFor, above): the
+    // tracked-country fills (red/yellow) sit underneath plenty of labels
+    // and don't change between themes, so a single invariant color was
+    // always a compromise -- white-on-dark-halo read fine in dark mode
+    // but was washed out in light mode. Each theme now gets its own
+    // text/halo pair, both built on the same trick (a halo opposite the
+    // text color lifts it off red/yellow fills *and* the page background).
     map.addLayer({
       id: 'country-labels',
       type: 'symbol',
@@ -1874,27 +1976,33 @@ map.on('load', async () => {
         'text-size': ['interpolate', ['linear'], ['zoom'], 2, 8, 6, 12],
         'text-padding': 4,
       },
-      paint: {
-        'text-color': '#fbfcfd',
-        'text-halo-color': 'rgba(4,6,10,0.85)',
-        'text-halo-width': 1.5,
-        'text-opacity': 1,
-      }
+      paint: { ...countryLabelPaintFor(darkMode), 'text-opacity': 1 }
     });
 
-    // ── PHASE 7: transfer arcs (static; see note above on why both
-    // projections get arcs even though the live site's flat map doesn't) ──
+    // ── PHASE 7: transfer arcs (animated, globe-only) ──
     //
-    // DISABLED 2026-06-24: long-distance great-circle paths (e.g. DC to
-    // Bhutan/Uzbekistan, whose shortest path bows up near 80degN; DC to
-    // Eswatini/Paraguay, which crosses the equator) sweep across nearly
-    // the full longitude range while changing very little in screen-Y on
-    // a Mercator projection, so they render as ugly near-horizontal
-    // streaks across the whole map instead of gentle curves. Turned off
-    // via visibility rather than removed -- source/layer/setData wiring
-    // stays intact so this is a one-line flip (`visibility: 'visible'`)
-    // once there's a real fix (e.g. clip/split long arcs, or only show
-    // them on the globe projection where great circles render correctly).
+    // DISABLED 2026-06-24, RE-ENABLED 2026-06-26 (globe-only): long-distance
+    // great-circle paths (e.g. DC to Bhutan/Uzbekistan, whose shortest path
+    // bows up near 80degN; DC to Eswatini/Paraguay, which crosses the
+    // equator) sweep across nearly the full longitude range while changing
+    // very little in screen-Y on a Mercator projection, so they render as
+    // ugly near-horizontal streaks across the whole map instead of gentle
+    // curves. That problem is specific to flat Mercator -- on the globe
+    // these are genuine great circles and render correctly, so arcs are
+    // now shown (and animated) only in Globe view; switchView() toggles
+    // visibility and starts/stops the animation loop below alongside the
+    // projection switch.
+    // line-dasharray sequence for the marching-dash animation below --
+    // the standard MapLibre/Mapbox "animated line" technique (line-trim-
+    // offset would be the more elegant "comet" approach but isn't a
+    // recognized property in MapLibre GL JS v5.24.0 -- confirmed directly:
+    // it made the whole addLayer call fail style validation, so the layer
+    // silently never existed. Verify before reusing this pattern elsewhere.)
+    const ARC_DASH_SEQUENCE = [
+      [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5],
+      [3, 4, 0], [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2],
+      [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5]
+    ];
     map.addSource('arcs', { type: 'geojson', data: buildArcsGeoJSON() });
     map.addLayer({
       id: 'transfer-arcs',
@@ -1902,12 +2010,39 @@ map.on('load', async () => {
       source: 'arcs',
       paint: {
         'line-color': 'rgba(248,81,73,0.55)',  // matches the original drawMapArcs() color exactly
-        'line-width': 1.5
+        'line-width': 1.5,
+        'line-dasharray': ARC_DASH_SEQUENCE[0]
       },
-      layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' }
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': viewMode === 'globe' ? 'visible' : 'none' }
     });
     // No hover/click handlers on this layer -- matches the original's
     // `interactive: false` Leaflet polylines; arcs are purely visual.
+
+    // Slow marching-dash animation, stepped (not every frame) for a subtle
+    // pace per the "optional... animated" framing. Only runs while arcs
+    // are visible (Globe view) -- switchView() calls start/stop alongside
+    // the visibility toggle -- and pauses when the tab isn't visible so it
+    // doesn't burn CPU/battery in the background.
+    let arcAnimRAF = null, arcAnimStep = 0, arcAnimLastTime = 0;
+    const ARC_ANIM_INTERVAL_MS = 90;
+    function animateArcs(now) {
+      if (now - arcAnimLastTime >= ARC_ANIM_INTERVAL_MS) {
+        arcAnimLastTime = now;
+        arcAnimStep = (arcAnimStep + 1) % ARC_DASH_SEQUENCE.length;
+        map.setPaintProperty('transfer-arcs', 'line-dasharray', ARC_DASH_SEQUENCE[arcAnimStep]);
+      }
+      arcAnimRAF = requestAnimationFrame(animateArcs);
+    }
+    // Exposed on window -- switchView() lives outside this load callback's
+    // closure and needs to start/stop the loop when the projection toggles
+    // (same window-exposure pattern as applyFiltersToMap/setMapTheme below).
+    window.startArcAnim = function() { if (!arcAnimRAF) animateArcs(); };
+    window.stopArcAnim = function() { if (arcAnimRAF) { cancelAnimationFrame(arcAnimRAF); arcAnimRAF = null; } };
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) window.stopArcAnim();
+      else if (viewMode === 'globe') window.startArcAnim();
+    });
+    if (viewMode === 'globe') window.startArcAnim();
 
     // Apply the currently active filters to every tracked feature's
     // 'dimmed' state, and rebuild the arcs to match. Exposed on window
@@ -1923,14 +2058,18 @@ map.on('load', async () => {
       map.getSource('arcs').setData(buildArcsGeoJSON());
     };
 
-    // ── PHASE 8: theme toggle — repaints the background and the
-    // untracked/filtered-out country color. Tracked-country red/yellow,
-    // the transfer arcs, and the labels (see note above) are all
+    // ── PHASE 8: theme toggle — repaints the background, the
+    // untracked/filtered-out country color, and the label text/halo.
+    // Tracked-country red/yellow and the transfer arcs stay
     // theme-invariant in the original/by design, so untouched here.
     window.setMapTheme = function(dark) {
       map.setPaintProperty('background', 'background-color', oceanColorFor(viewMode, dark));
       map.setPaintProperty('country-fills', 'fill-color', countryFillColorExpr(dark));
       map.setPaintProperty('country-borders', 'line-color', countryLineColorExpr(dark));
+      const labelPaint = countryLabelPaintFor(dark);
+      map.setPaintProperty('country-labels', 'text-color', labelPaint['text-color']);
+      map.setPaintProperty('country-labels', 'text-halo-color', labelPaint['text-halo-color']);
+      map.setPaintProperty('country-labels', 'text-halo-width', labelPaint['text-halo-width']);
     };
 
     // Minimal hover feedback (full sidebar/click wiring is Phase 3)
@@ -1974,7 +2113,8 @@ map.on('load', async () => {
       // flyTo([lat, lng]) used in the current site. Flipped explicitly here.
       map.flyTo({ center: [country.lng, country.lat], zoom: 5, duration: 900 });
 
-      document.getElementById('sidebar-flag').textContent = country.flag;
+      document.getElementById('sidebar-flag').innerHTML =
+        `<span class="fi fi-${flagEmojiToISOCode(country.flag)}" title="${country.name} flag"></span>`;
       document.getElementById('sidebar-country-name').textContent = country.name;
 
       const badge = document.getElementById('sidebar-transfer-badge');
@@ -2061,7 +2201,13 @@ map.on('load', async () => {
 
     function closeSidebar() {
       setSelected(null);
-      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar').classList.remove('open', 'fullscreen');
+      document.getElementById('sidebar-expand').innerHTML = '&#10530;';
+      if (filters.search) {
+        filters.search = '';
+        document.getElementById('country-search').value = '';
+        updateFilterCount(); updateStats(); window.applyFiltersToMap(); buildCountryList();
+      }
       // Matches the page's default load view -- US-centered (see map init above).
       map.flyTo({ center: MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM, duration: 900 });
     }
