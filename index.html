@@ -173,9 +173,6 @@
   .region-sep { margin: 0 5px; color: #21262d; }
 
   #source-line { font-size: 10px; color: #484f58; text-align: right; white-space: nowrap; }
-  #[redacted]-logo-link { display: inline-flex; flex-shrink: 0; }
-  #[redacted]-logo { height: 32px; flex-shrink: 0; opacity: 0.85; transition: opacity 0.15s; }
-  #[redacted]-logo-link:hover #[redacted]-logo { opacity: 1; }
 
   /* ── VIEW TOGGLE (Map/Globe — copied from index.html) ── */
   #view-toggle { display: flex; border: 1px solid rgba(88,166,255,0.25); border-radius: 6px; overflow: hidden; }
@@ -564,7 +561,6 @@
     .stat-value { font-size: 16px; }
     .stat-label { font-size: 9px; }
 
-    #[redacted]-logo { height: 24px; }
     #filter-toggle, #docs-toggle, #theme-toggle { font-size: 10px; padding: 3px 7px; }
 
     /* Country list stays collapsed (JS handles it) but remains tappable */
@@ -606,9 +602,6 @@
     <button class="view-btn" id="view-globe-btn" onclick="switchView('globe')">Globe</button>
   </div>
   <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
-  <a id="[redacted]-logo-link" href="https://refugees.org/" target="_blank" rel="noopener" title="Visit [redacted]">
-    <img id="[redacted]-logo" src="[redacted]_HQ-Main-White%206.png" alt="[redacted]">
-  </a>
   <div id="source-line">Source: Human Rights First &amp; Refugees International<br>Banished by Bargain (May 29, 2026)</div>
 </div>
 
