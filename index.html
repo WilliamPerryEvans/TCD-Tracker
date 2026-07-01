@@ -1257,12 +1257,11 @@ const REGION_GROUPS = {
 const NAME_TO_REGION = {};
 Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO_REGION[n] = r));
 
-// Features pulled from 50m instead of 110m: small island nations whose land
-// area is omitted entirely at 110m, plus territories where 110m resolution
-// is insufficient. Israel (376) and Palestine (275) must use the same
-// resolution so their shared borders align — at mixed resolutions the borders
-// diverge, leaving Gaza floating and the West Bank outline overlapping Israel.
-const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132', '275', '376']);
+// All countries use 50m world-atlas data. 110m would be smaller, but it
+// omits small island nations entirely (several are TCD countries), and mixing
+// 50m for some countries with 110m for their neighbors misaligns shared
+// borders (e.g. Israel/Palestine/Jordan all share arcs that must come from
+// the same resolution file to avoid gaps and floating polygons).
 
 // ──────────────────────────────────────────────
 // PHASE 8: theme state (copied verbatim from index.html). Declared this
@@ -1791,33 +1790,15 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-ri
 
 map.on('load', async () => {
   try {
-    const [topo110, topo50] = await Promise.all([
-      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
-      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json()),
-    ]);
+    const topo50 = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r => r.json());
+    const countries50 = topojson.feature(topo50, topo50.objects.countries);
 
-    const countries110 = topojson.feature(topo110, topo110.objects.countries);
-    const countries50  = topojson.feature(topo50,  topo50.objects.countries);
-
-    // Everything from 110m EXCEPT the small-island set; those come from 50m instead
-    // (110m omits most small island nations entirely, including several TCD countries).
-    // Antarctica (ISO 010) is also dropped here: it's not a TCD country, and its
-    // coastline ring legitimately spans the full -180..180 width (it wraps the
-    // bottom of the map), which fixMapGeometry's tear-unwrapping logic mistakes
-    // for a torn ring and mangles into a jagged, self-intersecting mess. The
-    // original Leaflet site never had to handle this -- minZoom:2 kept it out of
-    // view entirely. With renderWorldCopies:true allowing free vertical panning,
-    // it's reachable here, so just exclude it rather than special-case the fix.
-    const mainFeatures = countries110.features.filter(
-      f => !SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0')) && String(f.id).padStart(3, '0') !== '010'
-    );
-    const islandFeatures = countries50.features.filter(
-      f => SMALL_ISLAND_ISOS.has(String(f.id).padStart(3, '0'))
-    );
-    const allFeatures = [...mainFeatures, ...islandFeatures].map(f => ({
-      ...f,
-      geometry: fixMapGeometry(f.geometry),
-    }));
+    // Antarctica (ISO 010) excluded: its coastline legitimately spans the full
+    // -180..180 longitude range, which fixMapGeometry's tear-unwrapping logic
+    // mistakes for a torn ring and mangles into a jagged self-intersecting mess.
+    const allFeatures = countries50.features
+      .filter(f => String(f.id).padStart(3, '0') !== '010')
+      .map(f => ({ ...f, geometry: fixMapGeometry(f.geometry) }));
 
     // Join geometry -> COUNTRIES data via ISO numeric code, with a name-based
     // fallback for territories Natural Earth ships with no numeric ISO id
