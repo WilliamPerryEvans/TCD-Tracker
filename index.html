@@ -1257,9 +1257,12 @@ const REGION_GROUPS = {
 const NAME_TO_REGION = {};
 Object.entries(REGION_GROUPS).forEach(([r, names]) => names.forEach(n => NAME_TO_REGION[n] = r));
 
-// Small island nations omitted from the 110m topojson resolution —
-// pulled from the 50m file instead (same set as the current Leaflet build, + Cabo Verde).
-const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132']);
+// Features pulled from 50m instead of 110m: small island nations whose land
+// area is omitted entirely at 110m, plus territories where 110m resolution
+// is insufficient. Israel (376) and Palestine (275) must use the same
+// resolution so their shared borders align — at mixed resolutions the borders
+// diverge, leaving Gaza floating and the West Bank outline overlapping Israel.
+const SMALL_ISLAND_ISOS = new Set(['028', '212', '659', '662', '585', '132', '275', '376']);
 
 // ──────────────────────────────────────────────
 // PHASE 8: theme state (copied verbatim from index.html). Declared this
