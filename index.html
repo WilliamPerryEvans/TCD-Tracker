@@ -109,6 +109,14 @@
     border-radius: 4px; margin: 2px 2px 2px 0;
   }
 
+  .cc-item { font-size: 13px; color: #c9d1d9; line-height: 1.6; margin-bottom: 8px; }
+  .cc-item:last-child { margin-bottom: 0; }
+  .cc-item a, .info-value a {
+    color: #58a6ff; text-decoration: none;
+    border-bottom: 1px solid rgba(88,166,255,0.35);
+  }
+  .cc-item a:hover, .info-value a:hover { border-bottom-color: #58a6ff; }
+
   .divider { border: none; border-top: 1px solid #21262d; margin: 14px 0; }
 
   .intl-response {
@@ -231,6 +239,8 @@
   body.light-mode #sidebar-country-header { border-bottom-color: #d0d7de; }
   body.light-mode .info-label         { color: #57606a; }
   body.light-mode .info-value         { color: #424a53; }
+  body.light-mode .cc-item            { color: #424a53; }
+  body.light-mode .cc-item a, body.light-mode .info-value a { color: #0969da; border-bottom-color: rgba(9,105,218,0.35); }
   body.light-mode .harms-box          { background: rgba(248,81,73,0.04); color: #424a53; }
   body.light-mode .divider            { border-top-color: #d0d7de; }
   body.light-mode .intl-response      { background: rgba(9,105,218,0.04); border-color: rgba(9,105,218,0.18); }
@@ -1212,6 +1222,229 @@ const COUNTRIES = [
     harms: "At least 137 people have been transferred to Uzbekistan across two flights. Uzbek media confirmed that Kazakh and Kyrgyz nationals were returned to their respective home countries — raising chain refoulement concerns."
   }
 ];
+
+// ── COUNTRY CONDITIONS + treaty status (parsed from TCD Master Document_July 14_2026.docx) ──
+// Keyed by tracker country name. conditions[] holds HTML paragraphs (may contain
+// links); conv1951/cat are the treaty-status strings. Countries absent here were
+// not covered in the master document. Rendered as three sections in openSidebar().
+const COUNTRY_CONDITIONS = {
+  "Bhutan": {
+    "cat": "No",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/bhutan/\" target=\"_blank\" rel=\"noopener\">Bhutan - United States Department of State</a>"
+    ],
+    "conv1951": "No"
+  },
+  "Cabo Verde": {
+    "cat": "Yes",
+    "conditions": [
+      "Cabo Verde - United States Department of State"
+    ],
+    "conv1951": "Cabo Verde is only party to the 1967 Protocol"
+  },
+  "Cameroon": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/cameroon/\" target=\"_blank\" rel=\"noopener\">Cameroon - United States Department of State</a>",
+      "<a href=\"https://www.amnestyusa.org/press-releases/the-u-s-must-not-deport-people-to-cameroon/\" target=\"_blank\" rel=\"noopener\">The United States Must Not Deport People to Cameroon</a>",
+      "<a href=\"https://www.hrw.org/news/2022/02/10/us-deported-cameroonian-asylum-seekers-suffer-serious-harm\" target=\"_blank\" rel=\"noopener\">US: Deported Cameroonian Asylum Seekers Suffer Serious Harm | Human Rights Watch</a>",
+      "<a href=\"https://www.hrw.org/report/2022/02/10/how-can-you-throw-us-back/asylum-seekers-abused-us-and-deported-harm-cameroon\" target=\"_blank\" rel=\"noopener\">“How Can You Throw Us Back?”: Asylum Seekers Abused in the US and Deported to Harm in Cameroon | HRW</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Central African Republic": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://travel.state.gov/en/international-travel/travel-advisories/central-african-republic.html\" target=\"_blank\" rel=\"noopener\">State Department Travel Advisory - Central African Republic</a>",
+      "<a href=\"https://www.unrefugees.org/emergencies/central-african-republic/\" target=\"_blank\" rel=\"noopener\">UNHCR – Central African Refugee Crisis</a>",
+      "<a href=\"https://reliefweb.int/report/central-african-republic/central-african-republic-2026-humanitarian-response-plan-glance\" target=\"_blank\" rel=\"noopener\">UNOCHA - Central African Republic 2026 Humanitarian Response Plan</a>",
+      "<a href=\"https://www.refugeesinternational.org/reports-briefs/addressing-atrocities-and-displacement-a-path-forward-for-the-central-african-republic/\" target=\"_blank\" rel=\"noopener\">Refugees International - Addressing Atrocities and Displacement: A Path Forward for the Central African Republic</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Costa Rica": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.refugeesinternational.org/reports-briefs/limited-aid-and-impossible-choices-for-people-seeking-refuge-the-human-impact-of-trump-administration-policies-in-costa-rica/\" target=\"_blank\" rel=\"noopener\">Refugees International - Limited Aid and Impossible Choices for People Seeking Refuge: The Human Impact of Trump Administration Policies in Costa Rica</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Democratic Republic of Congo": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://home.treasury.gov/news/press-releases/sb0411\" target=\"_blank\" rel=\"noopener\">Treasury Sanctions Rwanda Officials, Condemns Blatant Violations of Washington Peace Accords | U.S. Department of the Treasury</a>",
+      "<a href=\"https://reliefweb.int/report/democratic-republic-congo/drc-authorities-must-end-support-armed-group-suspected-war-crimes\" target=\"_blank\" rel=\"noopener\">DRC: Authorities must end support for armed group suspected of war crimes - Democratic Republic of the Congo | ReliefWeb</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Ecuador": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/ecuador/\" target=\"_blank\" rel=\"noopener\">Ecuador - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "El Salvador": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.hrw.org/news/2025/03/20/human-rights-watch-declaration-prison-conditions-el-salvador-jgg-v-trump-case\" target=\"_blank\" rel=\"noopener\">Human Rights Watch declaration on prison conditions in El Salvador for the J.G.G. v. Trump case | Human Rights Watch</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Equatorial Guinea": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://egjustice.org/content/eg-justice-raises-alarm-over-u-s--equatorial-guinea-deportation-agreement\" target=\"_blank\" rel=\"noopener\">EG Justice Raises Alarm Over U.S.–Equatorial Guinea Deportation Agreement</a>",
+      "<a href=\"https://www.voanews.com/a/cameroon-hundreds-of-its-citizens-deported-from-equatorial-guinea-/6812930.html\" target=\"_blank\" rel=\"noopener\">Voice of America - Cameroon Says Hundreds of Its Citizens Deported from Equatorial Guinea</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Eswatini": {
+    "cat": "Yes",
+    "conditions": [
+      "In July 2024, Amnesty International <a href=\"https://www.amnesty.org/en/latest/news/2024/07/eswatini-imprisoned-mp-mduduzi-bacede-mabuza-at-serious-risk-after-prison-guards-deny-food-rations/\" target=\"_blank\" rel=\"noopener\">expressed concerns</a> about detention conditions at Matsapha Correctional Centre. An opposition politician who was jailed there was assaulted by prison guards and denied adequate food for four days. In the <a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/eswatini\" target=\"_blank\" rel=\"noopener\">2024 Human Rights Report</a>, the U.S. State Department stated that there were “numerous credible reports” that security forces inflicted torture and other forms of cruel, inhuman, or degrading treatment or punishment to people in detention. According to the <a href=\"https://www.state.gov/reports/2023-country-reports-on-human-rights-practices/eswatini/\" target=\"_blank\" rel=\"noopener\">2023 report</a>, prison conditions were mixed throughout the country. Problems included poor ventilation, overcrowding, decaying facilities, and prison violence.",
+      "The United States, and governments like Eswatini, risk violating international human rights laws by removing people to countries where they face a risk of serious harm or death. Four men who were deported earlier to Eswatini sued the Eswatini Government for due process violations, but their cases were delayed when an Eswatini High Court judge <a href=\"https://www.pbs.org/newshour/world/judge-fails-to-appear-for-court-hearing-in-eswatini-over-4-men-deported-from-the-u-s-by-trump-administration\" target=\"_blank\" rel=\"noopener\">failed to appear</a> for a scheduled court hearing without explanation.",
+      "The process to seek refugee status in Eswatini is under a <a href=\"https://www.state.gov/reports/2023-country-reports-on-human-rights-practices/eswatini/\" target=\"_blank\" rel=\"noopener\">significant backlog</a>. Due to the backlog, refugees went without benefits or legal authorization to work for the extended waiting period. Once granted refugee status, “many waited more than a decade for citizenship without success.”"
+    ],
+    "conv1951": "No"
+  },
+  "Ghana": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://reliefweb.int/map/ghana/ghana-regions-upper-west-and-upper-east-map-activities-general-protection-human-rights-and-social-cohesion-sector-11-jun-2025\" target=\"_blank\" rel=\"noopener\">Ghana - Regions of Upper West and Upper East: Map of activities in the General Protection, Human Rights and Social Cohesion sector (11 Jun 2025) - Ghana | ReliefWeb</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Guatemala": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/guatemala/\" target=\"_blank\" rel=\"noopener\">Guatemala - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Honduras": {
+    "cat": "Yes",
+    "conditions": [
+      "UNHCR <a href=\"https://data.unhcr.org/en/country/hnd\" target=\"_blank\" rel=\"noopener\">data</a> shows that there are 270 refugees and 500 asylum seekers in Honduras, as of August 2025. The U.S. Department of State <a href=\"https://www.state.gov/reports/2023-country-reports-on-human-rights-practices/honduras/\" target=\"_blank\" rel=\"noopener\">called</a> the refugee protection system “nascent” in 2023, and commented that it required substantial support from UNHCR. Migrants and asylum seekers were also vulnerable to abuse and sexual exploitation by criminal organizations.",
+      "More than 247,000 people are internally displaced, as civilians are subject to gang violence, extortion, forced recruitment, violence against women and girls, dispossession of property, and climate-related destruction. Honduras is a <a href=\"https://data.unhcr.org/en/country/hnd\" target=\"_blank\" rel=\"noopener\">“high risk” country for torture</a> and ill-treatment."
+    ],
+    "conv1951": "Yes"
+  },
+  "Kosovo": {
+    "cat": "",
+    "conditions": [
+      "Since Kosovo has been denied full recognition as a UN member state, it cannot be a signatory to the 1951 Refugee Convention or the Convention against Torture. However, it remains obliged to respect the principle of non-refoulement and has adopted international human rights instruments such as the Convention against Torture in its Constitution.",
+      "<a href=\"https://balkaninsight.com/2024/10/28/kosovo-counts-cost-and-benefit-of-prisoner-deal-with-denmark/\" target=\"_blank\" rel=\"noopener\">Balkan Insight - Kosovo Counts Cost and Benefit of Prisoner Deal with Denmark</a>"
+    ],
+    "conv1951": ""
+  },
+  "Liberia": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/liberia/\" target=\"_blank\" rel=\"noopener\">Liberia - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Libya": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://travel.state.gov/content/travel/en/international-travel/International-Travel-Country-Information-Pages/Libya.html\" target=\"_blank\" rel=\"noopener\">State Department – Travel Advisory for Libya</a>",
+      "<a href=\"https://www.theguardian.com/world/2025/may/07/us-planning-to-deport-migrants-to-libya-despite-hellish-conditions-reports\" target=\"_blank\" rel=\"noopener\">US reportedly planning to deport migrants to Libya despite ‘clear’ violation of court order</a>",
+      "<a href=\"https://www.thenewhumanitarian.org/interview/2022/06/13/Why-documenting-Libya-detention-abuses-is-so-important\" target=\"_blank\" rel=\"noopener\">The New Humanitarian - Q&amp;A: Why documenting Libya’s detention abuses is so important</a>",
+      "<a href=\"https://www.aljazeera.com/news/2019/3/2/refugees-in-libya-tortured-for-breaking-out-of-detention-centre\" target=\"_blank\" rel=\"noopener\">Al Jazeera - Refugees in Libya ‘tortured’ for breaking out of detention centre</a>",
+      "<a href=\"https://www.hrw.org/news/2025/05/09/us-dont-forcibly-transfer-migrants-libya\" target=\"_blank\" rel=\"noopener\">Human Rights Watch - US: Don’t Forcibly Transfer Migrants to Libya</a>"
+    ],
+    "conv1951": "No"
+  },
+  "Mexico": {
+    "cat": "Yes",
+    "conditions": [
+      "The United States has engaged in border diplomacy with Mexico in various ways over the last century. The overall impact has been to <a href=\"https://www.ohchr.org/sites/default/files/documents/issues/migration/cfis/externalization/subm-ext-migr-impact-cso-1-al-otro-lado.pdf\" target=\"_blank\" rel=\"noopener\">externalize</a> migration control by making Mexico a filter for migrants heading north from <a href=\"https://www.cfr.org/articles/crossing-darien-gap-migrants-risk-death-journey-us\" target=\"_blank\" rel=\"noopener\">South</a> and Central American countries. To do this, the U.S. government aims at not only working with Mexico to control the U.S.-Mexico border but also helping Mexico control its own borders.",
+      "These efforts include joint intelligence sharing, such as the <a href=\"https://www.cbp.gov/about/se-busca-campaigns\" target=\"_blank\" rel=\"noopener\">Se Busca Campaigns</a> and operational guidance. This externalization is also evident in practices such as <a href=\"https://www.congress.gov/crs-product/LSB10295\" target=\"_blank\" rel=\"noopener\">metering</a>, where asylum seekers are turned back to wait for the opportunity to seek asylum in the United States, and <a href=\"https://www.americanimmigrationcouncil.org/fact-sheet/migrant-protection-protocols/\" target=\"_blank\" rel=\"noopener\">offshoring</a>, where the asylum seeker must wait in Mexico while their U.S. asylum claim is being processed. The Biden administration also made <a href=\"https://www.axios.com/2023/05/03/biden-mexico-migration-border-deportation-title-42\" target=\"_blank\" rel=\"noopener\">agreements</a> with Mexico to continue accepting Venezuelan, Nicaraguan, Cuban and Haitian migrants. In this way, Mexico acts as a partner in controlling entry to the United States.",
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/mexico/\" target=\"_blank\" rel=\"noopener\">Mexico - United States Department of State</a>",
+      "<a href=\"https://www.hrw.org/report/2026/05/27/casting-us-aside-to-die/cuban-and-other-third-country-nationals-deported-from-the\" target=\"_blank\" rel=\"noopener\">Human Rights Watch: “Casting Us Aside to Die” Cuban and Other Third-Country Nationals Deported from the US to Mexico</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Moldova": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/moldova/\" target=\"_blank\" rel=\"noopener\">Moldova - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Palau": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/palau/\" target=\"_blank\" rel=\"noopener\">Palau - United States Department of State</a>",
+      "<a href=\"https://www.theguardian.com/world/2009/nov/01/uighurs-guantanamo-palau\" target=\"_blank\" rel=\"noopener\">The Guardian - Released Guantánamo Uighurs land in Palau</a>"
+    ],
+    "conv1951": "No"
+  },
+  "Panama": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.nytimes.com/2025/02/23/world/americas/panama-migrants-hotel-photo.html\" target=\"_blank\" rel=\"noopener\">No Exit - The New York Times</a> (February 2025) (February 2025)"
+    ],
+    "conv1951": "Yes"
+  },
+  "Paraguay": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/paraguay-travel-advisory.html\" target=\"_blank\" rel=\"noopener\">State Department - Paraguay Travel Advisory</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Poland": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.globaldetentionproject.org/poland-blocking-access-to-access-violating-human-rights-on-the-border\" target=\"_blank\" rel=\"noopener\">Poland: Blocking Access to Asylum, Violating Human Rights on the Border</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Rwanda": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/rwanda/\" target=\"_blank\" rel=\"noopener\">Rwanda - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "Sierra Leone": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/sierra-leone/\" target=\"_blank\" rel=\"noopener\">Sierra Leone - United States Department of State</a>"
+    ],
+    "conv1951": "Yes"
+  },
+  "South Sudan": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://reliefweb.int/report/sudan/asg-khiari-warns-indiscriminate-drone-strikes-and-arms-flows-are-driving-sudans-war-united-nations-peace-operations-0\" target=\"_blank\" rel=\"noopener\">ASG Khiari warns indiscriminate drone strikes and arms flows are driving Sudan’s war | United Nations Peace Operations - Sudan | ReliefWeb</a>"
+    ],
+    "conv1951": "No"
+  },
+  "St. Kitts and Nevis": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/saint-kitts-and-nevis/\" target=\"_blank\" rel=\"noopener\">Saint Kitts and Nevis - United States Department of State</a>"
+    ],
+    "conv1951": "Party to the Convention but not yet acceded to its 1967 Protocol (along with Madagascar)"
+  },
+  "Uganda": {
+    "cat": "Yes",
+    "conditions": [],
+    "conv1951": "Yes"
+  },
+  "Uzbekistan": {
+    "cat": "Yes",
+    "conditions": [
+      "<a href=\"https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/uzbekistan\" target=\"_blank\" rel=\"noopener\">State Department - 2024 Country Reports on Human Rights Practices: Uzbekistan</a>",
+      "<a href=\"https://www.globaldetentionproject.org/uzbekistan-cooperation-with-eu-and-us-raises-questions-about-human-rights-obligations\" target=\"_blank\" rel=\"noopener\">Uzbekistan: Cooperation with EU and US Raises Questions about Human Rights Obligations</a>",
+      "<a href=\"https://uhri.ohchr.org/en/document/ff04dcdd-e52e-4065-b3fc-861f48b0b338\" target=\"_blank\" rel=\"noopener\">United Nations Human Rights Committee - Concluding observations on the fifth periodic report of Uzbekistan</a>"
+    ],
+    "conv1951": "No"
+  }
+};
 
 // ── ISO 3166-1 NUMERIC -> COUNTRY NAME (copied verbatim from index.html) ──
 const ISO_TO_NAME = {
@@ -2222,6 +2455,16 @@ map.on('load', async () => {
 
       const fundingClass = (!country.funding.startsWith('No direct') && country.funding !== 'No financial compensation reported') ? 'funding' : '';
 
+      // Country Conditions + treaty status (from TCD Master Document). Countries
+      // not covered in that document render an italic "not documented" note.
+      const cc = COUNTRY_CONDITIONS[country.name];
+      const ccNA = `<div class="info-value" style="color:#484f58;font-style:italic;">Not documented in the source document</div>`;
+      const conditionsHtml = (cc && cc.conditions && cc.conditions.length)
+        ? cc.conditions.map(p => `<div class="cc-item">${p}</div>`).join('')
+        : ccNA;
+      const conv1951Html = (cc && cc.conv1951) ? `<div class="info-value">${cc.conv1951}</div>` : ccNA;
+      const catHtml      = (cc && cc.cat)      ? `<div class="info-value">${cc.cat}</div>`      : ccNA;
+
       document.getElementById('sidebar-content').innerHTML = `
         <div class="info-block">
           <div class="info-label">Agreement Type</div>
@@ -2276,6 +2519,19 @@ map.on('load', async () => {
         <div class="info-block">
           <div class="info-label">Documented Harms</div>
           ${harmsHtml}
+        </div>
+        <hr class="divider">
+        <div class="info-block">
+          <div class="info-label">Country Conditions</div>
+          ${conditionsHtml}
+        </div>
+        <div class="info-block">
+          <div class="info-label">Party to the 1951 Refugee Convention &amp; 1967 Protocol</div>
+          ${conv1951Html}
+        </div>
+        <div class="info-block">
+          <div class="info-label">Ratified Convention Against Torture</div>
+          ${catHtml}
         </div>
       `;
 
