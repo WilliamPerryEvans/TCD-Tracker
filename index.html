@@ -1315,6 +1315,15 @@ function toggleTheme() {
 // ──────────────────────────────────────────────
 const USA = { lat: 38.9, lng: -77.0 };
 
+// Peak latitude (deg) an arc is allowed to reach. A true great circle to a
+// destination that's nearly antipodal in longitude (e.g. DC ↔ Bhutan, ~167°
+// apart) sweeps right over the pole, where all meridians converge — on the
+// globe that renders as a red line "circling the top." No transfer routes
+// over the Arctic, so any arc that would crest above this is flattened toward
+// a straight path just enough to cap the crest (see below). Atlantic arcs all
+// crest well below this and are left as exact great circles.
+const MAX_ARC_LAT = 62;
+
 function greatCirclePoints(lat1, lng1, lat2, lng2) {
   const toR = d => d * Math.PI / 180;
   const toD = r => r * 180 / Math.PI;
@@ -1324,17 +1333,45 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
     Math.cos(φ1) * Math.cos(φ2) * Math.pow(Math.sin((λ2 - λ1) / 2), 2)
   ));
   if (d < 0.001) return [[lat1, lng1], [lat2, lng2]];
-  const pts = [];
-  for (let i = 0; i <= 60; i++) {
-    const f = i / 60;
+
+  // SLERP sample points, with longitudes unwrapped into a continuous run so
+  // the crest test and the blend below stay well-behaved across the ±180 seam.
+  const N = 60;
+  const gcLat = [], gcLng = [];
+  let prevLng = null;
+  for (let i = 0; i <= N; i++) {
+    const f = i / N;
     const A = Math.sin((1 - f) * d) / Math.sin(d);
     const B = Math.sin(f * d) / Math.sin(d);
     const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
     const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
     const z = A * Math.sin(φ1) + B * Math.sin(φ2);
-    pts.push([toD(Math.atan2(z, Math.sqrt(x * x + y * y))), toD(Math.atan2(y, x))]);
+    let lat = toD(Math.atan2(z, Math.sqrt(x * x + y * y)));
+    let lng = toD(Math.atan2(y, x));
+    if (prevLng !== null) { while (lng - prevLng > 180) lng -= 360; while (lng - prevLng < -180) lng += 360; }
+    prevLng = lng;
+    gcLat.push(lat); gcLng.push(lng);
   }
-  return pts;
+
+  // Flatten only if the great circle would crest above MAX_ARC_LAT: blend each
+  // point toward the straight lat/lng interpolation by the fraction needed to
+  // pull the crest down to the cap. Endpoints are fixed points of the blend, so
+  // the arc still starts at the origin and lands exactly on the destination.
+  let peak = 0;
+  for (const la of gcLat) peak = Math.max(peak, Math.abs(la));
+  if (peak > MAX_ARC_LAT) {
+    const lngStart = gcLng[0], lngEnd = gcLng[N];
+    const linPeak = Math.max(Math.abs(lat1), Math.abs(lat2));
+    const t = Math.min(1, Math.max(0, (peak - MAX_ARC_LAT) / (peak - linPeak)));
+    for (let i = 0; i <= N; i++) {
+      const f = i / N;
+      gcLat[i] = gcLat[i] * (1 - t) + (lat1 + (lat2 - lat1) * f) * t;
+      gcLng[i] = gcLng[i] * (1 - t) + (lngStart + (lngEnd - lngStart) * f) * t;
+    }
+  }
+
+  // Re-wrap longitudes back into [-180, 180] for output.
+  return gcLat.map((lat, i) => [lat, ((gcLng[i] + 180) % 360 + 360) % 360 - 180]);
 }
 
 function buildArcsGeoJSON() {
