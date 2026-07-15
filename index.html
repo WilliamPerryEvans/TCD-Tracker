@@ -1334,8 +1334,14 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
   ));
   if (d < 0.001) return [[lat1, lng1], [lat2, lng2]];
 
-  // SLERP sample points, with longitudes unwrapped into a continuous run so
-  // the crest test and the blend below stay well-behaved across the ±180 seam.
+  // SLERP sample points, with longitudes unwrapped into a continuous run.
+  // Keeping them continuous matters twice over: the crest test and blend below
+  // stay well-behaved across the ±180 seam, AND the output longitudes are left
+  // un-wrapped (they may exceed ±180). A Pacific-crossing arc (e.g. DC → Palau)
+  // wrapped back into [-180,180] introduces a ±360 jump at the antimeridian,
+  // and MapLibre's globe renderer draws that seam segment the long way around —
+  // a stray line "looping across the top." Continuous longitudes render as one
+  // clean arc; MapLibre wraps them into view itself. (Arcs are globe-only.)
   const N = 60;
   const gcLat = [], gcLng = [];
   let prevLng = null;
@@ -1370,8 +1376,8 @@ function greatCirclePoints(lat1, lng1, lat2, lng2) {
     }
   }
 
-  // Re-wrap longitudes back into [-180, 180] for output.
-  return gcLat.map((lat, i) => [lat, ((gcLng[i] + 180) % 360 + 360) % 360 - 180]);
+  // Output [lat, lng] with longitudes left continuous (see note above).
+  return gcLat.map((lat, i) => [lat, gcLng[i]]);
 }
 
 function buildArcsGeoJSON() {
